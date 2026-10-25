@@ -1,0 +1,156 @@
+{
+  "metadata": {
+    "schema_version": "2.0",
+    "updated_at": "2026-10-25",
+    "tipo_dados": "simulados",
+    "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
+    "indicadores": {
+      "populacao": {
+        "unidade": "pessoas",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "domicilios": {
+        "unidade": "domicílios",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_mil_reais": {
+        "unidade": "mil BRL/ano, preços correntes",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_total_bi": {
+        "unidade": "bilhões de BRL/ano (derivado)",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_per_capita": {
+        "unidade": "BRL/pessoa/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_renda": {
+        "unidade": "pessoas no universo da variável de renda",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_com_renda": {
+        "unidade": "pessoas em setores com massa ou média divulgada",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "cobertura_renda_proporcao": {
+        "unidade": "proporção [0,1] do universo de renda coberto",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_domiciliar": {
+        "unidade": "BRL/domicílio/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_responsavel": {
+        "unidade": "BRL/responsável/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini_estimado": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      }
+    },
+    "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
+    "perfil_codigo_setor": "15_digitos_sufixo_maiusculo_opcional",
+    "release_censo": null,
+    "universo_renda": "fixture: responsáveis DPPO, inclusive sem rendimento",
+    "mapeamento_variaveis_censo": null,
+    "tolerancia_media_renda_brl": "0.05",
+    "nivel": "municipio",
+    "cd_uf": "35",
+    "sigla_uf": "SP",
+    "nm_uf": "São Paulo",
+    "cd_regiao": "3",
+    "nm_regiao": "Sudeste",
+    "cd_mun": "3509502",
+    "cobertura_bairros": "amostra_simulada"
+  },
+  "municipio": {
+    "cd_mun": "3509502",
+    "nm_mun": "Campinas",
+    "indicadores": {
+      "populacao": 150000,
+      "pib_mil_reais": 6300000,
+      "pib_total_bi": 6.3,
+      "pib_per_capita": 42000.0,
+      "renda_media_domiciliar": 3700.0,
+      "renda_media_responsavel": null,
+      "gini": 0.49
+    },
+    "bairros": [
+      {
+        "cd_bairro": "3509502001",
+        "id_agregacao": "3509502001",
+        "nm_bairro": "Centro (demonstração)",
+        "origem_malha": "ibge_bairro_oficial",
+        "cd_setores": [
+          "350950200000004",
+          "350950200000005"
+        ],
+        "total_setores": 2,
+        "metodo_agregacao": "media_ponderada_responsaveis_validos",
+        "populacao": 1306,
+        "pib_mil_reais": null,
+        "pib_total_bi": null,
+        "pib_per_capita": null,
+        "renda_media_domiciliar": null,
+        "gini": null,
+        "domicilios": 433,
+        "responsaveis_renda": 372,
+        "responsaveis_com_renda": 370,
+        "setores_sem_renda": 1,
+        "setores_sob_sigilo": 1,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "cobertura_renda_proporcao": 0.9946,
+        "renda_media_responsavel": 4300.0,
+        "gini_estimado": null
+      },
+      {
+        "cd_bairro": null,
+        "id_agregacao": "demo:3509502:grupo-01",
+        "nm_bairro": "Área sem bairro oficial (demonstração)",
+        "origem_malha": "setores_agregados",
+        "cd_setores": [
+          "350950200000001",
+          "350950200000002A",
+          "350950200000003"
+        ],
+        "total_setores": 3,
+        "metodo_agregacao": "massa_e_media_ponderada_responsaveis_validos",
+        "populacao": 912,
+        "pib_mil_reais": null,
+        "pib_total_bi": null,
+        "pib_per_capita": null,
+        "renda_media_domiciliar": null,
+        "gini": null,
+        "domicilios": 618,
+        "responsaveis_renda": 404,
+        "responsaveis_com_renda": 400,
+        "setores_sem_renda": 1,
+        "setores_sob_sigilo": 1,
+        "setores_por_massa": 1,
+        "setores_por_media": 1,
+        "cobertura_renda_proporcao": 0.9901,
+        "renda_media_responsavel": 3500.0,
+        "gini_estimado": null
+      }
+    ]
+  }
+}

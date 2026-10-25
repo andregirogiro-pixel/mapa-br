@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "schema_version": "1.1",
+    "schema_version": "2.0",
     "updated_at": "2026-10-25",
     "tipo_dados": "simulados",
     "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
@@ -50,11 +50,6 @@
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
-      "renda_media": {
-        "unidade": "BRL/domicílio/mês",
-        "periodo_referencia": null,
-        "fonte": "fixture sintética; sem período estatístico real"
-      },
       "renda_media_responsavel": {
         "unidade": "BRL/responsável/mês",
         "periodo_referencia": null,
@@ -75,7 +70,9 @@
     "perfil_codigo_setor": "15_digitos_sufixo_maiusculo_opcional",
     "release_censo": null,
     "universo_renda": "fixture: responsáveis DPPO, inclusive sem rendimento",
-    "mapeamento_variaveis_censo": null
+    "mapeamento_variaveis_censo": null,
+    "tolerancia_media_renda_brl": "0.05",
+    "nivel": "brasil"
   },
   "resumo_brasil": {
     "populacao": 114750000,
@@ -83,6 +80,7 @@
     "pib_total_bi": 4770.0,
     "pib_per_capita": 41568.63,
     "renda_media_domiciliar": null,
+    "renda_media_responsavel": null,
     "gini": null
   },
   "regioes": [
@@ -95,6 +93,7 @@
         "pib_total_bi": 350.0,
         "pib_per_capita": 28571.43,
         "renda_media_domiciliar": null,
+        "renda_media_responsavel": null,
         "gini": null
       }
     },
@@ -107,6 +106,7 @@
         "pib_total_bi": 1230.0,
         "pib_per_capita": 36444.44,
         "renda_media_domiciliar": null,
+        "renda_media_responsavel": null,
         "gini": null
       }
     },
@@ -119,6 +119,7 @@
         "pib_total_bi": 915.0,
         "pib_per_capita": 42558.14,
         "renda_media_domiciliar": null,
+        "renda_media_responsavel": null,
         "gini": null
       }
     },
@@ -131,6 +132,7 @@
         "pib_total_bi": 863.0,
         "pib_per_capita": 46026.67,
         "renda_media_domiciliar": null,
+        "renda_media_responsavel": null,
         "gini": null
       }
     },
@@ -143,6 +145,7 @@
         "pib_total_bi": 1412.0,
         "pib_per_capita": 49543.86,
         "renda_media_domiciliar": null,
+        "renda_media_responsavel": null,
         "gini": null
       }
     }
@@ -163,6 +166,7 @@
         "pib_total_bi": 25.0,
         "pib_per_capita": 25000.0,
         "renda_media_domiciliar": 2000.0,
+        "renda_media_responsavel": null,
         "gini": 0.4
       },
       "dados_disponiveis": false,
@@ -183,6 +187,7 @@
         "pib_total_bi": 32.5,
         "pib_per_capita": 26000.0,
         "renda_media_domiciliar": 2075.0,
+        "renda_media_responsavel": null,
         "gini": 0.41
       },
       "dados_disponiveis": false,
@@ -203,6 +208,7 @@
         "pib_total_bi": 40.5,
         "pib_per_capita": 27000.0,
         "renda_media_domiciliar": 2150.0,
+        "renda_media_responsavel": null,
         "gini": 0.42
       },
       "dados_disponiveis": false,
@@ -223,6 +229,7 @@
         "pib_total_bi": 49.0,
         "pib_per_capita": 28000.0,
         "renda_media_domiciliar": 2225.0,
+        "renda_media_responsavel": null,
         "gini": 0.43
       },
       "dados_disponiveis": false,
@@ -243,6 +250,7 @@
         "pib_total_bi": 58.0,
         "pib_per_capita": 29000.0,
         "renda_media_domiciliar": 2300.0,
+        "renda_media_responsavel": null,
         "gini": 0.44
       },
       "dados_disponiveis": false,
@@ -263,6 +271,7 @@
         "pib_total_bi": 67.5,
         "pib_per_capita": 30000.0,
         "renda_media_domiciliar": 2375.0,
+        "renda_media_responsavel": null,
         "gini": 0.45
       },
       "dados_disponiveis": false,
@@ -283,6 +292,7 @@
         "pib_total_bi": 77.5,
         "pib_per_capita": 31000.0,
         "renda_media_domiciliar": 2450.0,
+        "renda_media_responsavel": null,
         "gini": 0.46
       },
       "dados_disponiveis": false,
@@ -303,6 +313,7 @@
         "pib_total_bi": 88.0,
         "pib_per_capita": 32000.0,
         "renda_media_domiciliar": 2525.0,
+        "renda_media_responsavel": null,
         "gini": 0.47
       },
       "dados_disponiveis": false,
@@ -323,6 +334,7 @@
         "pib_total_bi": 99.0,
         "pib_per_capita": 33000.0,
         "renda_media_domiciliar": 2600.0,
+        "renda_media_responsavel": null,
         "gini": 0.4
       },
       "dados_disponiveis": false,
@@ -343,6 +355,7 @@
         "pib_total_bi": 110.5,
         "pib_per_capita": 34000.0,
         "renda_media_domiciliar": 2675.0,
+        "renda_media_responsavel": null,
         "gini": 0.41
       },
       "dados_disponiveis": false,
@@ -363,6 +376,7 @@
         "pib_total_bi": 122.5,
         "pib_per_capita": 35000.0,
         "renda_media_domiciliar": 2750.0,
+        "renda_media_responsavel": null,
         "gini": 0.42
       },
       "dados_disponiveis": false,
@@ -383,6 +397,7 @@
         "pib_total_bi": 135.0,
         "pib_per_capita": 36000.0,
         "renda_media_domiciliar": 2825.0,
+        "renda_media_responsavel": null,
         "gini": 0.43
       },
       "dados_disponiveis": false,
@@ -403,6 +418,7 @@
         "pib_total_bi": 148.0,
         "pib_per_capita": 37000.0,
         "renda_media_domiciliar": 2900.0,
+        "renda_media_responsavel": null,
         "gini": 0.44
       },
       "dados_disponiveis": false,
@@ -423,6 +439,7 @@
         "pib_total_bi": 161.5,
         "pib_per_capita": 38000.0,
         "renda_media_domiciliar": 2975.0,
+        "renda_media_responsavel": null,
         "gini": 0.45
       },
       "dados_disponiveis": false,
@@ -443,6 +460,7 @@
         "pib_total_bi": 175.5,
         "pib_per_capita": 39000.0,
         "renda_media_domiciliar": 3050.0,
+        "renda_media_responsavel": null,
         "gini": 0.46
       },
       "dados_disponiveis": false,
@@ -463,6 +481,7 @@
         "pib_total_bi": 190.0,
         "pib_per_capita": 40000.0,
         "renda_media_domiciliar": 3125.0,
+        "renda_media_responsavel": null,
         "gini": 0.47
       },
       "dados_disponiveis": false,
@@ -483,6 +502,7 @@
         "pib_total_bi": 205.0,
         "pib_per_capita": 41000.0,
         "renda_media_domiciliar": 3200.0,
+        "renda_media_responsavel": null,
         "gini": 0.4
       },
       "dados_disponiveis": false,
@@ -503,6 +523,7 @@
         "pib_total_bi": 220.5,
         "pib_per_capita": 42000.0,
         "renda_media_domiciliar": 3275.0,
+        "renda_media_responsavel": null,
         "gini": 0.41
       },
       "dados_disponiveis": false,
@@ -523,6 +544,7 @@
         "pib_total_bi": 236.5,
         "pib_per_capita": 43000.0,
         "renda_media_domiciliar": 3350.0,
+        "renda_media_responsavel": null,
         "gini": 0.42
       },
       "dados_disponiveis": false,
@@ -543,6 +565,7 @@
         "pib_total_bi": 253.0,
         "pib_per_capita": 44000.0,
         "renda_media_domiciliar": 3425.0,
+        "renda_media_responsavel": null,
         "gini": 0.43
       },
       "dados_disponiveis": true,
@@ -563,6 +586,7 @@
         "pib_total_bi": 270.0,
         "pib_per_capita": 45000.0,
         "renda_media_domiciliar": 3500.0,
+        "renda_media_responsavel": null,
         "gini": 0.44
       },
       "dados_disponiveis": false,
@@ -583,6 +607,7 @@
         "pib_total_bi": 287.5,
         "pib_per_capita": 46000.0,
         "renda_media_domiciliar": 3575.0,
+        "renda_media_responsavel": null,
         "gini": 0.45
       },
       "dados_disponiveis": true,
@@ -603,6 +628,7 @@
         "pib_total_bi": 305.5,
         "pib_per_capita": 47000.0,
         "renda_media_domiciliar": 3650.0,
+        "renda_media_responsavel": null,
         "gini": 0.46
       },
       "dados_disponiveis": false,
@@ -623,6 +649,7 @@
         "pib_total_bi": 324.0,
         "pib_per_capita": 48000.0,
         "renda_media_domiciliar": 3725.0,
+        "renda_media_responsavel": null,
         "gini": 0.47
       },
       "dados_disponiveis": false,
@@ -643,6 +670,7 @@
         "pib_total_bi": 343.0,
         "pib_per_capita": 49000.0,
         "renda_media_domiciliar": 3800.0,
+        "renda_media_responsavel": null,
         "gini": 0.4
       },
       "dados_disponiveis": false,
@@ -663,6 +691,7 @@
         "pib_total_bi": 362.5,
         "pib_per_capita": 50000.0,
         "renda_media_domiciliar": 3875.0,
+        "renda_media_responsavel": null,
         "gini": 0.41
       },
       "dados_disponiveis": false,
@@ -683,6 +712,7 @@
         "pib_total_bi": 382.5,
         "pib_per_capita": 51000.0,
         "renda_media_domiciliar": 3950.0,
+        "renda_media_responsavel": null,
         "gini": 0.42
       },
       "dados_disponiveis": false,

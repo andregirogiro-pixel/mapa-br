@@ -10,6 +10,7 @@ import json
 import math
 from pathlib import Path
 import re
+import tempfile
 
 
 REGIOES = {
@@ -62,6 +63,7 @@ CODE_PATTERNS = {
 # Perfil aceito pelo contrato demonstrativo, não uma especificação verificada
 # de toda malha IBGE. O adaptador real deve fixar release, dicionário e perfil.
 CODE_PATTERNS["cd_setor"] = re.compile(r"[0-9]{15}[A-Z]?")
+MEAN_TOLERANCE = Decimal("0.05")
 
 
 def normalize_code(value: str, field: str) -> str:
@@ -100,9 +102,9 @@ def aggregate_sectors(
     Nunca deduzir esse peso do total físico. Massa e média devem ter o mesmo
     universo. O adaptador distingue sigilo de outras ausências; None não basta.
     """
-    validate_code(cd_mun, "cd_mun")
+    cd_mun = normalize_code(cd_mun, "cd_mun")
     if cd_bairro is not None:
-        validate_code(cd_bairro, "cd_bairro")
+        cd_bairro = normalize_code(cd_bairro, "cd_bairro")
         if not cd_bairro.startswith(cd_mun):
             raise ValueError("cd_bairro incompatível com cd_mun")
     if not setores or not isinstance(id_agregacao, str) or not id_agregacao:
@@ -114,13 +116,15 @@ def aggregate_sectors(
     # dispensa a lista O(n) de produtos; os IDs ainda exigem memória O(n).
     income_sum = Decimal(0)
     for setor in setores:
-        code = validate_code(setor["cd_setor"], "cd_setor")
+        code = normalize_code(setor["cd_setor"], "cd_setor")
         if not code.startswith(cd_mun) or code in seen:
             raise ValueError("Setor duplicado ou fora do município")
         seen.add(code)
         population = nonnegative(setor["populacao"], "populacao", integer=True)
         households = nonnegative(setor["domicilios"], "domicilios", integer=True)
         weight = nonnegative(setor["responsaveis_renda"], "responsaveis_renda", integer=True)
+        if weight > population or weight > households:
+            raise ValueError(f"Setor {code}: responsáveis excedem população ou domicílios")
         income = setor.get("renda_media_responsavel")
         mass = setor.get("massa_rendimento_setor")
         status = setor.get("status_renda", "ausente" if income is None and mass is None
@@ -131,6 +135,12 @@ def aggregate_sectors(
             nonnegative(income, "renda_media_responsavel")
         if mass is not None:
             nonnegative(mass, "massa_rendimento_setor")
+        if mass is not None and income is not None and weight > 0:
+            # Comparação sem divisão: equivalente a |massa/peso - média| > 0.05,
+            # evita arredondar um quociente periódico no limite da tolerância.
+            difference = abs(Decimal(str(mass)) - Decimal(str(income)) * weight)
+            if difference > MEAN_TOLERANCE * weight:
+                raise ValueError(f"Setor {code}: massa e média incompatíveis para o peso informado")
         available = mass is not None or income is not None
         if (status == "divulgada") != available:
             raise ValueError("status_renda incompatível com massa/média divulgada")
@@ -157,12 +167,18 @@ def aggregate_sectors(
               else "sem_renda_divulgada")
     return {
         "cd_bairro": cd_bairro,
-        "id_agregacao": id_agregacao,
+        "id_agregacao": cd_bairro if cd_bairro else id_agregacao,
         "nm_bairro": nm_bairro,
         "origem_malha": "ibge_bairro_oficial" if cd_bairro else "setores_agregados",
         "cd_setores": sorted(seen),
+        "total_setores": len(seen),
         "metodo_agregacao": method,
         "populacao": populacao,
+        "pib_mil_reais": None,
+        "pib_total_bi": None,
+        "pib_per_capita": None,
+        "renda_media_domiciliar": None,
+        "gini": None,
         "domicilios": domicilios,
         "responsaveis_renda": responsaveis,
         "responsaveis_com_renda": peso_valido,
@@ -188,7 +204,6 @@ def indicator_metadata() -> dict:
         "responsaveis_com_renda": "pessoas em setores com massa ou média divulgada",
         "cobertura_renda_proporcao": "proporção [0,1] do universo de renda coberto",
         "renda_media_domiciliar": "BRL/domicílio/mês",
-        "renda_media": "BRL/domicílio/mês",
         "renda_media_responsavel": "BRL/responsável/mês",
         "gini": "índice [0,1]", "gini_estimado": "índice [0,1]",
     }
@@ -201,7 +216,7 @@ def indicator_metadata() -> dict:
 
 def common_metadata(updated_at: str) -> dict:
     return {
-        "schema_version": "1.1", "updated_at": updated_at,
+        "schema_version": "2.0", "updated_at": updated_at,
         "tipo_dados": "simulados",
         "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
         "indicadores": indicator_metadata(), "aviso": AVISO,
@@ -209,6 +224,7 @@ def common_metadata(updated_at: str) -> dict:
         "release_censo": None,
         "universo_renda": "fixture: responsáveis DPPO, inclusive sem rendimento",
         "mapeamento_variaveis_censo": None,
+        "tolerancia_media_renda_brl": str(MEAN_TOLERANCE),
     }
 
 
@@ -223,6 +239,7 @@ def state_summary(index: int) -> dict:
         "pib_total_bi": gdp_mil / 1_000_000,
         "pib_per_capita": round(gdp_mil * 1000 / population, 2),
         "renda_media_domiciliar": 2_000.0 + index * 75,
+        "renda_media_responsavel": None,
         "gini": round(0.4 + (index % 8) * 0.01, 2),
     }
 
@@ -238,18 +255,21 @@ def aggregate_summaries(summaries: list[dict]) -> dict:
     return {
         "populacao": population, "pib_mil_reais": gdp, "pib_total_bi": gdp / 1_000_000,
         "pib_per_capita": round(gdp * 1000 / population, 2) if population else None,
-        "renda_media_domiciliar": None, "gini": None,
+        "renda_media_domiciliar": None, "renda_media_responsavel": None, "gini": None,
     }
 
 
 def demo_municipality(code: str, name: str, index: int) -> dict:
-    validate_code(code, "cd_mun")
-    official_scenario = {
-        "cd_bairro": code + "001", "nm_bairro": "Centro (demonstração)",
-        "origem_malha": "ibge_bairro_oficial",
-        "populacao": 1200 + index * 100, "domicilios": 400 + index * 30,
-        "renda_media_responsavel": 4200.0 + index * 100, "gini_estimado": 0.46,
-    }
+    code = normalize_code(code, "cd_mun")
+    official_scenario = aggregate_sectors([
+        {"cd_setor": code + "00000004", "populacao": 1200 + index * 100,
+         "domicilios": 400 + index * 30, "responsaveis_renda": 350 + index * 20,
+         "renda_media_responsavel": 4200.0 + index * 100},
+        {"cd_setor": code + "00000005", "populacao": 6,
+         "domicilios": 3, "responsaveis_renda": 2,
+         "renda_media_responsavel": None, "status_renda": "sigilo"},
+    ], cd_mun=code, cd_bairro=code + "001", id_agregacao=code + "001",
+       nm_bairro="Centro (demonstração)")
     fallback = aggregate_sectors([
         {"cd_setor": code + "00000001", "populacao": 300,
          "domicilios": 160, "responsaveis_renda": 100,
@@ -262,45 +282,150 @@ def demo_municipality(code: str, name: str, index: int) -> dict:
          "renda_media_responsavel": None, "status_renda": "sigilo"},
     ], cd_mun=code, id_agregacao=f"demo:{code}:grupo-01",
        nm_bairro="Área sem bairro oficial (demonstração)")
+    population = 100_000 + index * 50_000
+    gdp = population * (40_000 + index * 2000) // 1000
     return {
         "cd_mun": code, "nm_mun": name,
         "indicadores": {
-            "populacao": 100_000 + index * 50_000,
-            "pib_per_capita": 40_000.0 + index * 2000,
-            "renda_media": 3500.0 + index * 200, "gini": 0.49,
+            "populacao": population,
+            "pib_mil_reais": gdp, "pib_total_bi": gdp / 1_000_000,
+            "pib_per_capita": round(gdp * 1000 / population, 2),
+            "renda_media_domiciliar": 3500.0 + index * 200,
+            "renda_media_responsavel": None, "gini": 0.49,
         },
         "bairros": [official_scenario, fallback],
     }
 
 
 def validate_payload(payload: dict) -> None:
-    """Valida IDs em todos os níveis, inclusive setores de fallback."""
+    """Valida estrutura, IDs, vínculos e números finitos sem serializar JSON."""
+    def fail(message: str) -> None:
+        raise ValueError(message)
+
     def walk(value: object) -> None:
         if isinstance(value, dict):
             for key, child in value.items():
-                if key in CODE_LENGTHS:
-                    if not (key == "cd_bairro" and child is None
-                            and value.get("origem_malha") == "setores_agregados"):
-                        validate_code(child, key)
+                if not isinstance(key, str):
+                    fail("Chave JSON deve ser textual")
+                if key in CODE_LENGTHS and not (key == "cd_bairro" and child is None):
+                    validate_code(child, key)
                 if key == "cd_setores":
+                    if not isinstance(child, list):
+                        fail("cd_setores deve ser lista")
                     for code in child:
                         validate_code(code, "cd_setor")
                 walk(child)
         elif isinstance(value, list):
             for child in value:
                 walk(child)
+        elif isinstance(value, float):
+            if not math.isfinite(value):
+                fail("JSON não admite NaN/Infinity")
+        elif value is not None and not isinstance(value, (str, int, bool)):
+            fail("Tipo não suportado no JSON")
+
+    if not isinstance(payload, dict) or not isinstance(payload.get("metadata"), dict):
+        fail("Payload precisa de metadata")
     walk(payload)
-    uf = payload.get("metadata", {}).get("cd_uf")
-    for municipio in payload.get("municipios", []):
-        code = municipio["cd_mun"]
-        if not code.startswith(uf):
-            raise ValueError("Município fora da UF")
+    level = payload["metadata"].get("nivel")
+    if level not in {"brasil", "uf", "municipio"}:
+        fail("metadata.nivel deve ser brasil, uf ou municipio")
+    if level == "brasil":
+        if not isinstance(payload.get("ufs"), list) or len(payload["ufs"]) != 27:
+            fail("Índice deve conter as 27 UFs")
+        if not isinstance(payload.get("regioes"), list) or len(payload["regioes"]) != 5:
+            fail("Índice deve conter as cinco regiões")
+        if "municipios" in payload or "municipios_resumo" in payload:
+            fail("Índice nacional não pode embutir municípios")
+        for uf in payload["ufs"]:
+            if not isinstance(uf, dict) or not isinstance(uf.get("metadata"), dict):
+                fail("UF do índice malformada")
+            validate_code(uf["metadata"].get("cd_uf"), "cd_uf")
+        return
+    uf = validate_code(payload["metadata"].get("cd_uf"), "cd_uf")
+    if level == "uf":
+        if "municipios" in payload or not isinstance(payload.get("municipios_resumo"), list):
+            fail("UF precisa de municipios_resumo, sem detalhes embutidos")
+        records = payload["municipios_resumo"]
+    else:
+        record = payload.get("municipio")
+        if not isinstance(record, dict):
+            fail("Detalhe precisa de municipio")
+        metadata_code = validate_code(payload["metadata"].get("cd_mun"), "cd_mun")
+        if record.get("cd_mun") != metadata_code:
+            fail("Município diverge dos metadados")
+        records = [record]
+    seen_municipalities = set()
+    for municipio in records:
+        if not isinstance(municipio, dict):
+            fail("Registro municipal inválido")
+        code = validate_code(municipio.get("cd_mun"), "cd_mun")
+        if not code.startswith(uf) or code in seen_municipalities:
+            fail("Município duplicado ou fora da UF")
+        seen_municipalities.add(code)
+        if level == "uf":
+            if any(key in municipio for key in ("bairros", "cd_setores")):
+                fail("Resumo municipal não pode embutir bairros ou setores")
+            if not isinstance(municipio.get("arquivo"), str):
+                fail("Resumo municipal precisa de caminho de detalhe")
+            continue
+        if not isinstance(municipio.get("bairros"), list):
+            fail("Município precisa de bairros")
+        seen_groups, seen_sectors = set(), set()
         for bairro in municipio["bairros"]:
-            codes = ([bairro["cd_bairro"]] if bairro["cd_bairro"] is not None else [])
-            codes += bairro.get("cd_setores", [])
-            if any(not c.startswith(code) for c in codes):
-                raise ValueError("Bairro/setor fora do município")
-    json.dumps(payload, allow_nan=False)
+            if not isinstance(bairro, dict):
+                fail("Bairro inválido")
+            required = {
+                "cd_bairro", "id_agregacao", "nm_bairro", "origem_malha",
+                "cd_setores", "total_setores", "metodo_agregacao", "populacao",
+                "domicilios", "responsaveis_renda", "responsaveis_com_renda",
+                "setores_sem_renda", "setores_sob_sigilo", "setores_por_massa",
+                "setores_por_media", "cobertura_renda_proporcao",
+                "renda_media_responsavel", "renda_media_domiciliar",
+                "pib_mil_reais", "pib_total_bi", "pib_per_capita", "gini", "gini_estimado",
+            }
+            if set(bairro) != required:
+                fail("Bairro deve obedecer ao schema único de detalhe")
+            origin, bairro_code = bairro["origem_malha"], bairro["cd_bairro"]
+            group_id = bairro["id_agregacao"]
+            if not isinstance(group_id, str) or not group_id.strip() or group_id in seen_groups:
+                fail("id_agregacao deve ser textual, preenchido e único")
+            seen_groups.add(group_id)
+            if origin == "ibge_bairro_oficial":
+                validate_code(bairro_code, "cd_bairro")
+                if not bairro_code.startswith(code) or group_id != bairro_code:
+                    fail("Bairro oficial incompatível com município ou id_agregacao")
+            elif origin != "setores_agregados" or bairro_code is not None:
+                fail("Fallback exige origem setores_agregados e cd_bairro null")
+            codes = bairro["cd_setores"]
+            if not isinstance(codes, list) or not codes:
+                fail("Detalhe deve preservar os códigos dos setores")
+            nonnegative(bairro["total_setores"], "total_setores", integer=True)
+            if bairro["total_setores"] != len(codes):
+                fail("total_setores diverge da lista")
+            for sector in codes:
+                if not sector.startswith(code) or sector in seen_sectors:
+                    fail("Setor fora do município ou contado em mais de um grupo")
+                seen_sectors.add(sector)
+
+
+def write_payload(path: Path, payload: dict) -> None:
+    """Valida e serializa uma única vez; publicação atômica por arquivo."""
+    validate_payload(payload)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Arquivo temporário exclusivo no mesmo filesystem: uma falha de escrita
+    # não deixa o destino parcialmente serializado e não sobrescreve temporários.
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                         suffix=".tmp", delete=False) as stream:
+            temp_path = Path(stream.name)
+            json.dump(payload, stream, ensure_ascii=False, indent=2, allow_nan=False)
+            stream.write("\n")
+        temp_path.replace(path)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
 
 
 def build(output_dir: Path, updated_at: str) -> list[Path]:
@@ -309,15 +434,16 @@ def build(output_dir: Path, updated_at: str) -> list[Path]:
         "35": [("3550308", "São Paulo"), ("3509502", "Campinas")],
         "42": [("4205407", "Florianópolis"), ("4209102", "Joinville")],
     }
-    ufs = []
-    payloads = {}
+    ufs, paths = [], []
     for index, (code, sigla, name, region) in enumerate(UFS):
+        code = normalize_code(code, "cd_uf")
+        region = normalize_code(region, "cd_regiao")
         metadata = {
-            **common_metadata(updated_at), "cd_uf": code, "sigla_uf": sigla,
-            "nm_uf": name, "cd_regiao": region, "nm_regiao": REGIOES[region],
+            **common_metadata(updated_at), "nivel": "uf", "cd_uf": code,
+            "sigla_uf": sigla, "nm_uf": name, "cd_regiao": region,
+            "nm_regiao": REGIOES[region],
         }
         summary = state_summary(index)
-        # O índice mantém metadados comuns uma única vez para reduzir a carga.
         ufs.append({
             "metadata": {key: metadata[key] for key in (
                 "cd_uf", "sigla_uf", "nm_uf", "cd_regiao", "nm_regiao", "updated_at",
@@ -325,36 +451,45 @@ def build(output_dir: Path, updated_at: str) -> list[Path]:
             "resumo_uf": summary, "dados_disponiveis": code in demos,
             "arquivo": f"uf/{code}.json" if code in demos else None,
         })
-        if code in demos:
-            payloads[f"uf/{code}.json"] = {
-                "metadata": {**metadata,
-                             "cobertura_municipios": "amostra_simulada",
+        if code not in demos:
+            continue
+        municipality_summaries = []
+        for i, (municipality_code, municipality_name) in enumerate(demos[code]):
+            municipality = demo_municipality(municipality_code, municipality_name, i)
+            municipality_code = municipality["cd_mun"]
+            detail_path = output_dir / "municipios" / code / f"{municipality_code}.json"
+            write_payload(detail_path, {
+                "metadata": {**metadata, "nivel": "municipio", "cd_mun": municipality_code,
                              "cobertura_bairros": "amostra_simulada"},
-                "resumo_uf": summary,
-                "municipios": [demo_municipality(c, n, i)
-                               for i, (c, n) in enumerate(demos[code])],
-            }
-    payloads["brasil.json"] = {
-        "metadata": common_metadata(updated_at),
+                "municipio": municipality,
+            })
+            paths.append(detail_path)
+            municipality_summaries.append({
+                "cd_mun": municipality_code, "nm_mun": municipality_name,
+                "indicadores": municipality["indicadores"],
+                "total_bairros": len(municipality["bairros"]),
+                "total_setores": sum(b["total_setores"] for b in municipality["bairros"]),
+                # Caminho relativo ao próprio arquivo da UF, não ao índice nacional.
+                "arquivo": f"../municipios/{code}/{municipality_code}.json",
+            })
+        uf_path = output_dir / "uf" / f"{code}.json"
+        write_payload(uf_path, {
+            "metadata": {**metadata, "cobertura_municipios": "amostra_simulada"},
+            "resumo_uf": summary, "municipios_resumo": municipality_summaries,
+        })
+        paths.append(uf_path)
+    index_path = output_dir / "brasil.json"
+    write_payload(index_path, {
+        "metadata": {**common_metadata(updated_at), "nivel": "brasil"},
         "resumo_brasil": aggregate_summaries([u["resumo_uf"] for u in ufs]),
         "regioes": [
             {"cd_regiao": code, "nm_regiao": name,
              "indicadores": aggregate_summaries([
                  u["resumo_uf"] for u in ufs if u["metadata"]["cd_regiao"] == code
              ])} for code, name in REGIOES.items()
-        ],
-        "ufs": ufs,
-    }
-    # Validar todo o lote antes de gravar qualquer arquivo.
-    for payload in payloads.values():
-        validate_payload(payload)
-    paths = []
-    for relative, payload in payloads.items():
-        path = output_dir / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2,
-                                   allow_nan=False) + "\n", encoding="utf-8")
-        paths.append(path)
+        ], "ufs": ufs,
+    })
+    paths.append(index_path)
     return paths
 
 

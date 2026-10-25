@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "01_build_uf_base.py"
@@ -39,9 +40,17 @@ class BuildTests(unittest.TestCase):
             if uf["dados_disponiveis"]:
                 payload = self.read(uf["arquivo"])
                 self.assertEqual(payload["metadata"]["cd_uf"], uf["metadata"]["cd_uf"])
-                self.assertEqual(len(payload["municipios"]), 2)
+                self.assertEqual(len(payload["municipios_resumo"]), 2)
                 self.assertEqual(payload["resumo_uf"], uf["resumo_uf"])
                 pipeline.validate_payload(payload)
+                self.assertNotIn('"cd_setores"', json.dumps(payload))
+                self.assertNotIn('"bairros"', json.dumps(payload))
+                for municipio in payload["municipios_resumo"]:
+                    path = (self.root / uf["arquivo"]).parent / municipio["arquivo"]
+                    detail = json.loads(path.read_text())
+                    self.assertEqual(detail["municipio"]["cd_mun"], municipio["cd_mun"])
+                    self.assertEqual(detail["municipio"]["indicadores"], municipio["indicadores"])
+                    self.assertEqual(len(detail["municipio"]["bairros"]), 2)
             else:
                 self.assertIsNone(uf["arquivo"])
 
@@ -76,7 +85,7 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(pipeline.validate_code("001234567890123", "cd_setor"),
                          "001234567890123")
         payload = self.read("uf/42.json")
-        payload["municipios"][0]["cd_mun"] = "3550308"
+        payload["municipios_resumo"][0]["cd_mun"] = "3550308"
         with self.assertRaises(ValueError):
             pipeline.validate_payload(payload)
 
@@ -200,7 +209,8 @@ class AggregationTests(unittest.TestCase):
     def test_decimal_half_even_and_order_independence(self):
         sectors = self.sectors()
         for sector, mass in zip(sectors, (0.01, 0.02)):
-            sector.update(responsaveis_renda=1, massa_rendimento_setor=mass)
+            sector.update(responsaveis_renda=1, massa_rendimento_setor=mass,
+                          renda_media_responsavel=None)
         self.assertEqual(self.aggregate(sectors)["renda_media_responsavel"], 0.02)
         self.assertEqual(self.aggregate(list(reversed(sectors))), self.aggregate(sectors))
 
@@ -238,8 +248,119 @@ class AggregationTests(unittest.TestCase):
                     id_agregacao="grupo", nm_bairro="Centro", cd_bairro=invalid)
         result["cd_setores"][0] = "355030800000001"
         with self.assertRaises(ValueError):
-            pipeline.validate_payload({"metadata": {"cd_uf": "42"}, "municipios": [
-                {"cd_mun": "4205407", "bairros": [result]}]})
+            pipeline.validate_payload({"metadata": {"nivel": "municipio", "cd_uf": "42",
+                "cd_mun": "4205407"}, "municipio": {"cd_mun": "4205407", "bairros": [result]}})
+
+    def test_responsibles_cannot_exceed_either_physical_universe(self):
+        for population, households, weight in ((10, 5, 500), (1, 10, 2), (10, 1, 2)):
+            sectors = self.sectors()[:1]
+            sectors[0].update(populacao=population, domicilios=households,
+                              responsaveis_renda=weight)
+            with self.subTest(population=population, households=households), self.assertRaisesRegex(
+                    ValueError, "responsáveis excedem"):
+                self.aggregate(sectors)
+        sectors[0].update(populacao=2, domicilios=2, responsaveis_renda=2)
+        self.assertEqual(self.aggregate(sectors)["responsaveis_renda"], 2)
+
+    def test_mass_mean_tolerance_boundary_and_large_divergence(self):
+        sectors = self.sectors()[:1]
+        sectors[0]["massa_rendimento_setor"] = 200005
+        self.assertEqual(self.aggregate(sectors)["renda_media_responsavel"], 2000.05)
+        for mass in (200005.001, 199994.999, 9999999):
+            sectors[0]["massa_rendimento_setor"] = mass
+            with self.subTest(mass=mass), self.assertRaisesRegex(ValueError, "massa e média"):
+                self.aggregate(sectors)
+
+    def test_normalization_is_used_before_duplicate_detection(self):
+        sectors = self.sectors()
+        sectors[0]["cd_setor"] = " 420540700000001a "
+        result = self.aggregate(sectors)
+        self.assertEqual(result["cd_setores"][0], "420540700000001A")
+        sectors[1]["cd_setor"] = "420540700000001A"
+        with self.assertRaisesRegex(ValueError, "duplicado"):
+            self.aggregate(sectors)
+
+
+class ContractTests(unittest.TestCase):
+    # Reutiliza somente a fixture, sem executar novamente os testes de BuildTests.
+    setUp = BuildTests.setUp
+    read = BuildTests.read
+    def test_bairros_have_identical_schema_and_unique_sectors(self):
+        for path in (self.root / "municipios").rglob("*.json"):
+            municipality = json.loads(path.read_text())["municipio"]
+            official, fallback = municipality["bairros"]
+            self.assertEqual(set(official), set(fallback))
+            self.assertEqual(official["id_agregacao"], official["cd_bairro"])
+            self.assertLess(official["cobertura_renda_proporcao"], 1)
+            self.assertIsNone(official["gini_estimado"])
+            self.assertEqual(official["total_setores"], len(official["cd_setores"]))
+            self.assertTrue(set(official["cd_setores"]).isdisjoint(fallback["cd_setores"]))
+
+    def test_same_metric_names_with_separate_income_concepts(self):
+        keys = set(self.index["resumo_brasil"])
+        self.assertIn("renda_media_domiciliar", keys)
+        self.assertIn("renda_media_responsavel", keys)
+        self.assertNotIn("renda_media", self.index["metadata"]["indicadores"])
+        for path in (self.root / "municipios").rglob("*.json"):
+            municipality = json.loads(path.read_text())["municipio"]
+            indicators = municipality["indicadores"]
+            self.assertEqual(set(indicators), keys)
+            self.assertEqual(indicators["pib_total_bi"], indicators["pib_mil_reais"] / 1_000_000)
+            for bairro in municipality["bairros"]:
+                self.assertTrue(keys <= set(bairro))
+                self.assertIsNone(bairro["pib_mil_reais"])
+                self.assertIsNone(bairro["renda_media_domiciliar"])
+
+    def detail(self):
+        return self.read("municipios/42/4205407.json")
+
+    def test_contradictory_origins_and_missing_schema_fields_rejected(self):
+        for origin, code in (("setores_agregados", "4205407001"),
+                             ("ibge_bairro_oficial", None), ("unknown", None)):
+            payload = self.detail()
+            payload["municipio"]["bairros"][0].update(origem_malha=origin, cd_bairro=code)
+            with self.subTest(origin=origin), self.assertRaises(ValueError):
+                pipeline.validate_payload(payload)
+        payload = self.detail()
+        del payload["municipio"]["bairros"][0]["cobertura_renda_proporcao"]
+        with self.assertRaisesRegex(ValueError, "schema único"):
+            pipeline.validate_payload(payload)
+
+    def test_missing_uf_has_explicit_validation_error(self):
+        payload = self.detail()
+        del payload["metadata"]["cd_uf"]
+        with self.assertRaisesRegex(ValueError, "cd_uf inválido"):
+            pipeline.validate_payload(payload)
+
+    def test_nonfinite_and_non_json_values_rejected_without_serializing(self):
+        for bad in (float("nan"), float("inf"), {1, 2}):
+            payload = self.detail()
+            payload["extra"] = bad
+            with self.subTest(value=bad), self.assertRaises(ValueError):
+                pipeline.validate_payload(payload)
+
+    def test_cross_bairro_double_counting_rejected(self):
+        payload = self.detail()
+        bairros = payload["municipio"]["bairros"]
+        bairros[1]["cd_setores"][0] = bairros[0]["cd_setores"][0]
+        with self.assertRaisesRegex(ValueError, "mais de um grupo"):
+            pipeline.validate_payload(payload)
+
+    def test_only_one_serialization_per_output(self):
+        with patch.object(pipeline.json, "dumps", side_effect=AssertionError("double serialization")):
+            with patch.object(pipeline.json, "dump", wraps=pipeline.json.dump) as dump:
+                paths = pipeline.build(self.root, "2026-10-25")
+        self.assertEqual(len(paths), 7)
+        self.assertEqual(dump.call_count, len(paths))
+
+    def test_failed_validation_preserves_existing_output(self):
+        path = self.root / "municipios/42/4205407.json"
+        before = path.read_bytes()
+        payload = self.detail()
+        payload["extra"] = float("nan")
+        with self.assertRaises(ValueError):
+            pipeline.write_payload(path, payload)
+        self.assertEqual(path.read_bytes(), before)
 
 
 class CodeAndGdpTests(unittest.TestCase):

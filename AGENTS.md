@@ -1,122 +1,128 @@
 # Plataforma analítica do Brasil
 
-## Escopo e arquitetura
+## Arquitetura e execução
 
 - Monorepo: `etl_pipeline/` (Python 3.11+), `frontend/` (futuro React + Vite),
-  `data/processed/uf/` (partições estáticas) e `notebooks/` (exploração).
-- Navegação: País → Região → UF → Município → Bairro ou Setor Censitário.
-- Interface planejada: mapa coroplético à esquerda, cards, rankings e dispersão
-  à direita; tema escuro analítico. O frontend ainda não foi implementado.
-- Usar o checkout existente; cada tarefa cloud já é isolada. Não criar worktrees
+  `data/processed/` (JSONs estáticos) e `notebooks/` (exploração).
+- Navegação: País → Região → UF → Município → Bairro/Setor.
+  Interface planejada: mapa à esquerda e painel analítico à direita, tema escuro.
+  Frontend, API, geometria e ingestão real ainda não foram implementados.
+- Usar o checkout existente. Cada tarefa cloud já é isolada; não criar worktrees
   sem pedido explícito. Não versionar credenciais nem dados brutos pesados.
-- Não baixar dados automaticamente ao importar módulos. Ingestão real futura:
-  pandas, geopandas, geobr e sidrapy; API FastAPI é opcional.
+- Ingestão futura: pandas, geopandas, geobr e sidrapy; FastAPI opcional.
+  Não baixar dados nem executar pipeline durante importação de módulos.
+- Gerar: `python3 etl_pipeline/01_build_uf_base.py --date 2026-10-25`.
+  Testar: `python3 -m unittest discover -s etl_pipeline/tests -v`.
+  Ambos são offline e usam só a biblioteca padrão. `--output-dir` escolhe destino.
 
-## Regras de dados obrigatórias
+## Regras de códigos e fontes
 
-1. Códigos IBGE são **strings**, nunca números: CD_REGIAO (1 dígito), CD_UF
-   (2), CD_MUN (7), CD_BAIRRO (9–10), CD_SETOR (15 dígitos com sufixo
-   opcional A–Z no perfil demonstrativo). Usar nomes JSON em
-   minúsculas. Em pandas, declarar `dtype` string ao ler; nunca converter
-   primeiro para número. No JavaScript, não usar `Number`/`parseInt` nas chaves.
-   Validar formato e prefixos UF/município antes de joins. Regex pré-compiladas;
-   `normalize_code` remove espaços nas bordas e coloca sufixo em maiúsculas,
-   sem converter números ou remover sufixos. Nunca colapsar setores A/B.
-   O perfil aceito NÃO confirma a especificação de uma malha: antes de ingerir,
-   fixar release, arquivo, dicionário e formato. Não presumir nomes V001/V0001
-   ou significados iguais entre arquivos, pesquisas e anos.
-2. Carga inicial: apenas resumo nacional, cinco regiões e 27 UFs em
-   `data/processed/brasil.json`. Nunca incluir listas municipais, bairros ou
-   setores nesse índice. Geometria inicial futura: só limites nacionais/UFs.
-3. Municípios, bairros e setores são carregados por UF, somente após seleção:
-   `data/processed/uf/{cd_uf}.json`. Não gerar um GeoJSON/JSON nacional com
-   todos os municípios ou bairros. Geometrias detalhadas também serão
-   particionadas; para volumes grandes, subdividir por município.
-4. Não fabricar códigos oficiais para agregações. Sem bairro oficial,
-   preservar `cd_setores` como strings, usar `cd_bairro: null` (ausência de
-   código), `id_agregacao` separado e `origem_malha: "setores_agregados"`.
-   O consumidor usa `cd_bairro ?? id_agregacao` como chave. Nenhum código
-   presente pode ser numérico. A escolha de grupos exige vínculo territorial
-   validado; não deduzir bairros a partir do prefixo de setores.
-5. Renda: `domicilios` é o total físico para exibição, NUNCA o peso implícito.
-   Exigir `responsaveis_renda` explicitamente, mapeado ao denominador exato
-   da variável da fonte (inclusive/exclusive sem rendimento). DPPO só é
-   equivalente quando o dicionário confirma esse universo. Todos os setores
-   de um grupo devem ter o mesmo universo, unidade e período.
-   Sobre o subconjunto V com massa ou média divulgada, usar:
-   `sum(massa_i se disponível, senão renda_i * responsaveis_i) / sum(responsaveis_i)`.
-   Priorizar massa só quando sua definição corresponde à média e ao universo.
-   Excluir renda ausente do numerador E do denominador; conservar população,
-   domicílios e universo total. Zero é renda válida. Universo de renda zero
-   com renda/massa positiva é inconsistente. Peso válido zero retorna null.
-   `status_renda`: divulgada, sigilo ou ausente. O adaptador deve preservar o
-   marcador original de sigilo (ex.: X, apenas se definido no dicionário);
-   `None` sozinho não comprova sigilo. NaN/Infinity e sentinelas não normalizadas
-   são rejeitados. Publicar cobertura válida/total em [0,1] e contagens de
-   setores com renda ausente e sob sigilo. A média é condicional à cobertura,
-   não uma imputação nem uma estimativa sem viés para todo o bairro.
-   Acumular massas/produtos em Decimal, arredondar só a média final a centavos
-   com ROUND_HALF_EVEN. Gini sem microdistribuição permanece null.
-6. Registrar fonte, período de referência, unidade, método e condição simulada.
-   Não exibir números de demonstração como dados oficiais. Distinguir renda do
-   responsável, renda domiciliar e renda per capita. `updated_at` é data de
-   geração, não ano de referência de cada indicador. `null` significa indisponível.
-7. Dados eleitorais futuros: conservar IDs do TSE como strings e registrar
-   método/incerteza de correspondência espacial; seção eleitoral não é setor IBGE.
+1. Códigos IBGE sempre strings: CD_REGIAO (1 dígito), CD_UF (2), CD_MUN (7),
+   CD_BAIRRO (9–10), CD_SETOR (15 dígitos e sufixo opcional A–Z no perfil demo).
+   Esse perfil NÃO foi verificado contra uma release real da malha IBGE.
+2. Fixar release, arquivo, dicionário e perfil antes da ingestão real. Não
+   presumir significados de V001/V0001 entre arquivos, pesquisas e anos.
+   Declarar dtype textual na leitura, sem conversão numérica intermediária.
+   No JavaScript, não usar Number/parseInt nas chaves.
+3. `normalize_code` é usado nas entradas da agregação e na geração de fixtures:
+   remove espaços nas bordas, coloca sufixos em maiúsculas, mantém zeros e
+   sufixos. Nunca inventar dígitos ou colapsar setores A/B. Regex pré-compiladas;
+   validar prefixos e duplicatas depois da normalização.
+4. Vínculo territorial deve ser validado na fonte/espacialmente. Prefixo só
+   comprova coerência do código municipal, não pertencimento a bairro.
+   Sem bairro oficial: cd_bairro null e id_agregacao textual próprio. Com bairro
+   oficial: origem ibge_bairro_oficial e id_agregacao igual a cd_bairro.
+5. Indicadores e códigos de bairros/setores são fixtures explicitamente
+   simuladas. Nomes e códigos de regiões, UFs e municípios correspondem à
+   divisão oficial. updated_at é geração, não referência estatística.
+   Fonte, unidade, universo e período devem acompanhar dados reais.
+   release_censo e mapeamento_variaveis_censo continuam nulos nas fixtures.
+6. IDs futuros do TSE permanecem strings. Seção eleitoral não é setor IBGE;
+   registrar método e incerteza de correspondência espacial.
 
-## Contrato JSON (schema_version 1.1)
+## Matemática e qualidade
 
-UTF-8, sem NaN/Infinity. PIB canônico em `pib_mil_reais` (inteiro nas fixtures);
-`pib_total_bi` é derivado somente para compatibilidade/apresentação, nunca
-somado no pipeline. PIB per capita = PIB em mil reais * 1000 / população.
-Uma fonte real com frações exige preservar a escala decimal, sem truncar para
-inteiro; o contrato de fixtures atual rejeita PIB fracionário. Outros montantes
-em reais e Gini no intervalo [0, 1]. Listas de municípios/bairros de demonstração são
-parciais e **não** reconciliam com os totais sintéticos estaduais.
+- domicilios = total físico para exibição; responsaveis_renda = universo exato
+  da renda (inclusive/exclusive sem rendimento conforme dicionário). Nunca
+  inferir peso a partir de domicílios totais. DPPO só é equivalente se a fonte
+  confirmar. Exigir inteiros não negativos e responsáveis <= população E
+  responsáveis <= domicílios em cada setor; domicílios podem exceder população.
+- Todos os setores do grupo devem ter mesmo período, unidade e universo.
+  Sobre V, subconjunto com renda divulgada e peso positivo:
+  soma(massa_i se disponível, senão média_i * responsáveis_i) / soma(responsáveis_i).
+  Massa tem prioridade, desde que pertença ao mesmo universo. Se massa E média
+  existem, exigir abs(massa - média * peso) <= 0.05 * peso, em Decimal.
+  Essa tolerância é política do contrato demo, não certificação universal IBGE.
+  Coerência numérica não substitui verificação semântica no dicionário.
+- Ausência é excluída do numerador E do denominador válido, mantendo totais
+  físicos e universo total. Renda zero é válida. Nenhuma renda válida => null;
+  renda/massa positiva com universo zero => erro. Gini sem microdistribuição
+  fica null. Nunca calcular Gini pela média de Ginis.
+- status_renda: divulgada, sigilo ou ausente, coerente com massa/média.
+  O adaptador deve preservar o marcador de sigilo da fonte; None sozinho não
+  comprova sigilo. Sentinelas não normalizadas, NaN e Infinity são rejeitados.
+- cobertura_renda_proporcao = responsáveis com renda / universo total de renda,
+  em [0,1], quatro casas. Universo zero => null; universo positivo sem renda => 0.
+  Média coberta não implica estimativa sem viés da renda de toda a população.
+- Acumular massas/produtos em Decimal, arredondar somente a média final a
+  centavos com ROUND_HALF_EVEN. Os códigos exigem memória O(n); ordenação
+  dos códigos custa O(n log n). Não manter lista adicional de produtos.
+- PIB canônico em pib_mil_reais (inteiro nas fixtures). Agregar nessa unidade;
+  pib_total_bi = pib_mil_reais / 1_000_000 é derivado para apresentação.
+  PIB per capita = pib_mil_reais * 1000 / população. Fontes fracionárias exigem
+  adaptação decimal explícita; o contrato demo rejeita frações sem truncar.
 
-Índice `brasil.json`:
+## Contrato JSON 2.0 — quebra deliberada do 1.1
 
-- `metadata`: `schema_version`, `updated_at`, `tipo_dados`, `fonte_geografica`,
-  `indicadores` (unidades, referência e fonte), `aviso`, `perfil_codigo_setor`,
-  `release_censo`, `universo_renda`, `mapeamento_variaveis_censo`. Release e
-  mapeamento permanecem nulos nas fixtures; nenhuma ingestão real foi validada.
-- `resumo_brasil`: `populacao`, `pib_mil_reais`, `pib_total_bi`, `pib_per_capita`,
-  `renda_media_domiciliar`, `gini`. Agregar apenas medidas compatíveis;
-  renda e Gini nacionais/regionais permanecem nulos sem bases adequadas.
-- `regioes`: `cd_regiao`, `nm_regiao`, `indicadores`.
-- `ufs`: 27 registros com `metadata`, `resumo_uf`, `dados_disponiveis`,
-  `arquivo` (caminho relativo ao índice, ou null). Apenas SP e SC têm detalhe.
+UTF-8, sem NaN/Infinity. Campos indisponíveis são null, nunca zero inventado.
+Indicadores macro com mesmos nomes em país, região, UF e município:
+`populacao`, `pib_mil_reais`, `pib_total_bi`, `pib_per_capita`,
+`renda_media_domiciliar`, `renda_media_responsavel`, `gini`.
+Renda domiciliar e do responsável são conceitos diferentes e nunca aliases.
+Não usar mais renda_media. País/região não agregam renda sem os pesos corretos.
+Bairros expõem esses mesmos campos, com PIB, renda domiciliar e Gini nulos
+quando não disponíveis; renda do responsável vem dos setores.
+Amostras municipais/bairros são parciais e não reconciliam com totais estaduais.
 
-Partição `uf/{cd_uf}.json`:
+Carga progressiva, caminhos canônicos (não usar 42_SC.json):
 
-- `metadata`: `cd_uf`, `sigla_uf`, `nm_uf`, `cd_regiao`, `nm_regiao`,
-  `updated_at`, `schema_version`, `tipo_dados`, `cobertura_municipios`,
-  `cobertura_bairros`, `indicadores`, `aviso`.
-- `resumo_uf`: os mesmos indicadores de `resumo_brasil`.
-- `municipios[]`: `cd_mun`, `nm_mun`, `indicadores` (`populacao`,
-  `pib_per_capita`, `renda_media`, `gini`), `bairros[]`.
-- Bairro oficial: `cd_bairro`, `nm_bairro`, `origem_malha:
-  "ibge_bairro_oficial"`, `populacao`, `domicilios`,
-  `renda_media_responsavel`, `gini_estimado`. Na demonstração, esse valor de
-  origem representa apenas o cenário do contrato: não há malha real incluída.
-- Fallback: os mesmos campos, `cd_bairro: null`, `origem_malha:
-  "setores_agregados"`, `id_agregacao`, `cd_setores[]` e
-  `responsaveis_renda`, `responsaveis_com_renda`, `setores_sem_renda`,
-  `setores_sob_sigilo`, `setores_por_massa`, `setores_por_media`,
-  `cobertura_renda_proporcao` e `metodo_agregacao`.
-  Método: `massa_por_responsaveis_validos`, `media_ponderada_responsaveis_validos`,
-  `massa_e_media_ponderada_responsaveis_validos` ou `sem_renda_divulgada`.
-  Cobertura = responsáveis com renda / responsáveis do universo; null se
-  universo zero, 0 se universo positivo e nenhuma renda divulgada. A função
-  também aceita bairro oficial e verifica seus setores, sem inferir vínculo
-  espacial apenas pelo prefixo. Não usar o rótulo percentual para essa proporção.
+1. `data/processed/brasil.json`: metadata.nivel = brasil, resumo_brasil,
+   cinco regioes com indicadores, 27 ufs com metadata/resumo_uf,
+   dados_disponiveis e arquivo relativo a este índice, ou null.
+   Nunca embutir municípios/bairros/setores na carga nacional.
+2. `data/processed/uf/{cd_uf}.json`: metadata.nivel = uf, resumo_uf e
+   municipios_resumo com cd_mun, nm_mun, indicadores, total_bairros,
+   total_setores e arquivo relativo ao arquivo da UF, por exemplo
+   `../municipios/42/4205407.json`. Sem bairros ou arrays de setores.
+3. `data/processed/municipios/{cd_uf}/{cd_mun}.json`: metadata.nivel = municipio,
+   cd_uf/cd_mun nos metadados e objeto municipio com cd_mun, nm_mun,
+   indicadores e bairros. Só carregar ao selecionar o município.
+   Para volumes maiores, subdividir também por bairro; nunca consolidar todos
+   os municípios/setores nacionais num arquivo. Geometrias seguem a mesma regra.
 
-## Execução e validação
+Todos os bairros (oficiais ou fallback) passam por aggregate_sectors e possuem
+exatamente estas chaves:
 
-Na raiz: `python3 etl_pipeline/01_build_uf_base.py` e
-`python3 -m unittest discover -s etl_pipeline/tests -v`.
-O gerador é offline, determinístico para uma mesma `--date` e não requer
-instalar bibliotecas geoespaciais. `--output-dir` permite gerar fora do checkout.
-Não adicionar frontend, API, geometrias ou estatísticas oficiais sem tarefa
-específica. Ao adicionar ingestão real, testar procedência, unidades, joins e
-particionamento; manter fixtures pequenas e explicitamente simuladas.
+- Identificação: cd_bairro (string oficial ou null), id_agregacao (sempre
+  preenchido), nm_bairro, origem_malha (ibge_bairro_oficial/setores_agregados).
+- Linhagem: cd_setores (strings, apenas no detalhe municipal), total_setores,
+  metodo_agregacao, setores_por_massa, setores_por_media.
+- Totais/qualidade: populacao, domicilios, responsaveis_renda,
+  responsaveis_com_renda, setores_sem_renda, setores_sob_sigilo,
+  cobertura_renda_proporcao.
+- Indicadores: pib_mil_reais, pib_total_bi, pib_per_capita,
+  renda_media_domiciliar, renda_media_responsavel, gini, gini_estimado.
+
+Métodos: massa_por_responsaveis_validos, media_ponderada_responsaveis_validos,
+massa_e_media_ponderada_responsaveis_validos ou sem_renda_divulgada.
+Não atribuir o mesmo setor a múltiplos bairros do município.
+
+## Escrita e testes
+
+validate_payload verifica estrutura, estados contraditórios, vínculos, códigos
+normalizados e números finitos, sem serializar. write_payload usa json.dump uma
+única vez por saída e troca atômica por arquivo, com temporário exclusivo.
+A publicação do lote inteiro não é transacional. build processa um detalhe
+municipal por vez, retendo somente resumos e caminhos; não mantém todos os
+bairros/setores nacionais em memória. Atualizar testes e JSONs ao mudar contrato.
+Não adicionar frontend, API, geometria ou ingestão real sem tarefa específica.

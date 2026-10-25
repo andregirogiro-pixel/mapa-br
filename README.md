@@ -1,69 +1,85 @@
 # mapa-br
 
-Base de uma plataforma analítica geográfica do Brasil: País → Região → UF →
-Município → Bairro/Setor. Este primeiro passo prepara diretórios, contrato de
-dados e um gerador offline. A aplicação React será implementada depois.
+Base de uma plataforma analítica do Brasil: País → Região → UF → Município →
+Bairro/Setor. Há um gerador offline de demonstração; frontend React, API,
+geometrias e ingestão real do Censo ainda não foram implementados.
 
-## Gerar os dados de demonstração
+## Gerar e testar
 
-Python 3.11 ou superior, sem dependências externas para este comando:
+Python 3.11+, sem dependências externas para estes comandos:
 
 ```bash
 python3 etl_pipeline/01_build_uf_base.py --date 2026-10-25
 python3 -m unittest discover -s etl_pipeline/tests -v
 ```
 
-Sem `--date`, usa a data UTC de execução. Para outro destino, use
-`--output-dir /tmp/mapa-br-demo`.
+Sem `--date`, usa data UTC. `--output-dir /tmp/mapa-br-demo` escolhe outro destino.
 
-- `data/processed/brasil.json`: resumo nacional, cinco regiões e as 27 UFs.
-- `data/processed/uf/35.json` e `42.json`: municípios e bairros demonstrativos
-  de SP e SC, com exemplos de fallback por setores.
-- `frontend/`: reservado para React + Vite; sem app neste passo.
-- `notebooks/`: reservado para exploração.
-- `data/raw/`: arquivos brutos locais ignorados pelo Git.
+```text
+data/processed/
+  brasil.json                       # país, cinco regiões e 27 UFs
+  uf/35.json                        # resumos municipais de SP
+  uf/42.json                        # resumos municipais de SC
+  municipios/35/3550308.json         # São Paulo: indicadores e bairros
+  municipios/35/3509502.json         # Campinas
+  municipios/42/4205407.json         # Florianópolis
+  municipios/42/4209102.json         # Joinville
+```
 
-**Todos os indicadores são simulados.** Só nomes, siglas e códigos de UF,
-região e município correspondem à divisão oficial. Códigos de bairros e setores
-são fixtures de formato, não registros oficiais verificados. Não há geometrias.
-As amostras municipais não representam a totalidade de cada estado.
+**Todos os indicadores são simulados.** Só nomes/códigos de região, UF e município
+correspondem à divisão oficial. Códigos de bairros/setores são fixtures de formato,
+sem vínculo oficial verificado. Amostras não reconciliam com totais estaduais.
 
-O índice aponta para a partição disponível pelo campo `arquivo`, relativo a
-`brasil.json`. O frontend deverá fazer fetch dessa partição só após seleção da
-UF. As outras 25 UFs têm resumo e `dados_disponiveis: false`.
+## Contrato 2.0 e carregamento sob demanda
 
-O fallback recebe setores já associados a um grupo territorial, conserva seus
-códigos e calcula renda usando o universo explícito de responsáveis e cobertura divulgada. Prioriza massa de rendimento sobre médias setoriais arredondadas; não usa
-setores sob sigilo como renda zero. Não infere bairros nem calcula
-Gini a partir de médias. Consulte [AGENTS.md](AGENTS.md) para o contrato completo.
+O índice nacional aponta para `uf/{cd_uf}.json`, apenas para SP/SC nesta demo.
+Esses arquivos têm `municipios_resumo`, sem bairros ou arrays de setores. Cada
+município aponta para seu detalhe, usando caminho relativo ao próprio arquivo
+UF (ex.: `../municipios/42/4205407.json`). O consumidor deve resolver os caminhos
+em relação ao JSON que os contém. Não concatenar todos com a URL da raiz.
+Somente o detalhe municipal contém `bairros` e `cd_setores`.
 
-## Dependências para futura ingestão
+Migração do 1.1: `municipios` com bairros embutidos saiu do arquivo de UF;
+passou a `municipios_resumo` + arquivo de detalhe com objeto `municipio`.
+O caminho canônico continua `uf/42.json`, não `42_SC.json`.
+Ainda não existe frontend para migrar.
+
+Todos os níveis mantêm nomes explícitos: `renda_media_domiciliar` e
+`renda_media_responsavel`. A chave ambígua `renda_media` foi removida.
+Municípios incluem PIB em mil reais, bilhões derivados e per capita.
+PIB e renda domiciliar dos bairros ficam nulos; não são inferidos da renda
+exclusiva dos responsáveis. País/região também não calculam renda sem pesos.
+
+Bairros oficiais e fallback usam a mesma agregação e o mesmo schema. Códigos
+ficam como strings; a entrada normaliza espaços e caixa dos sufixos. O fallback
+não fabrica código de bairro. Os setores precisam de vínculo territorial validado.
+
+Renda usa `responsaveis_renda`, nunca o total físico `domicilios`. O peso não
+pode exceder população nem domicílios. Massa de rendimento prevalece sobre média,
+mas a presença de ambas exige diferença de até R$ 0,05 entre massa/peso e média.
+Essa tolerância não substitui a confirmação do universo no dicionário da fonte.
+A renda suprimida fica fora de ambos os termos da média, com cobertura e contagens
+publicadas. `None` não é automaticamente sigilo. Arredondamento final:
+Decimal/ROUND_HALF_EVEN. Gini não é estimado pela média de Ginis.
+
+PIB canônico: `pib_mil_reais` inteiro nas fixtures; bilhões são derivados. Fontes
+com frações precisarão de adaptação decimal explícita. Release do Censo e
+mapeamentos de variáveis continuam nulos: o perfil de sufixos e as nomenclaturas
+não foram verificados contra um arquivo real.
+
+Cada JSON é validado sem serialização e gravado uma vez, com troca atômica por
+arquivo. O gerador mantém um detalhe municipal por vez, sem montar um lote
+nacional de bairros/setores em memória. Veja [AGENTS.md](AGENTS.md) para detalhes.
+
+## Diretórios e dependências futuras
+
+`frontend/` reserva React + Vite; `notebooks/` reserva exploração; `data/raw/`
+contém bases locais ignoradas pelo Git.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r etl_pipeline/requirements.txt
 ```
 
-O arquivo de requisitos declara faixas compatíveis para a próxima etapa; não é
-um lockfile. O gerador e seus testes usam apenas a biblioteca padrão. Não há
-download de bases, API, credenciais ou serviços necessários nesta etapa.
-
-## Revisão do contrato (1.1)
-
-- Setores aceitam 15 dígitos e um sufixo opcional A–Z, preservado no join.
-  Esse é o perfil das fixtures; não verifica uma release real do IBGE.
-- Na entrada da agregação, `domicilios` conta o total físico e
-  `responsaveis_renda` é obrigatório e corresponde ao universo da renda.
-- `massa_rendimento_setor` (BRL/mês) é opcional e prevalece sobre a média;
-  exige o mesmo universo. `status_renda: "sigilo"` é explícito; ausência
-  genérica é contabilizada separadamente. Ainda não há parser de CSV do Censo.
-- `cobertura_renda_proporcao` está em [0,1], não em porcentagem. Sem cobertura,
-  a renda é null. Arredondamento monetário final: Decimal/ROUND_HALF_EVEN.
-- PIB canônico: `pib_mil_reais` inteiro nas fixtures. `pib_total_bi` é derivado.
-  O agregador rejeita frações em vez de truncá-las. Uma fonte com frações
-  precisará de adaptação decimal explícita antes de ser integrada.
-
-A nomenclatura das variáveis, os universos, os marcadores de ausência e a
-especificação dos códigos deverão ser confirmados no dicionário do arquivo
-escolhido. Os dados continuam simulados; `release_censo` e
-`mapeamento_variaveis_censo` permanecem nulos.
+Os requisitos preparam ingestão futura e não são um lockfile. Não há downloads
+de bases, credenciais ou serviços necessários para o gerador e seus testes.
