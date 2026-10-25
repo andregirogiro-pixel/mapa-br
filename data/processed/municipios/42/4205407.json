@@ -20,6 +20,11 @@
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
+      "pib_mil_reais_exato": {
+        "unidade": "mil BRL/ano, preços correntes; texto decimal exato",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
       "pib_total_bi": {
         "unidade": "bilhões de BRL/ano (derivado)",
         "periodo_referencia": null,
@@ -42,6 +47,16 @@
       },
       "cobertura_renda_proporcao": {
         "unidade": "proporção [0,1] do universo de renda coberto",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "massa_rendimento_considerada": {
+        "unidade": "BRL/mês; texto decimal da soma parcial divulgada/reconstruída",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_universo_renda_suprimido": {
+        "unidade": "setores com denominador de renda sob sigilo",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
@@ -96,7 +111,7 @@
     "bairros": [
       {
         "cd_bairro": "4205407001",
-        "id_agregacao": "4205407001",
+        "id_agregacao": "bairro:4205407001",
         "nm_bairro": "Centro (demonstração)",
         "origem_malha": "ibge_bairro_oficial",
         "cd_setores": [
@@ -118,6 +133,8 @@
         "setores_sob_sigilo": 1,
         "setores_por_massa": 0,
         "setores_por_media": 1,
+        "setores_universo_renda_suprimido": 0,
+        "massa_rendimento_considerada": "1470000.0",
         "cobertura_renda_proporcao": 0.9943,
         "renda_media_responsavel": 4200.0,
         "gini_estimado": null
@@ -147,6 +164,8 @@
         "setores_sob_sigilo": 1,
         "setores_por_massa": 1,
         "setores_por_media": 1,
+        "setores_universo_renda_suprimido": 0,
+        "massa_rendimento_considerada": "1400000.0",
         "cobertura_renda_proporcao": 0.9901,
         "renda_media_responsavel": 3500.0,
         "gini_estimado": null

@@ -290,7 +290,7 @@ class ContractTests(unittest.TestCase):
             municipality = json.loads(path.read_text())["municipio"]
             official, fallback = municipality["bairros"]
             self.assertEqual(set(official), set(fallback))
-            self.assertEqual(official["id_agregacao"], official["cd_bairro"])
+            self.assertEqual(official["id_agregacao"], f"bairro:{official['cd_bairro']}")
             self.assertLess(official["cobertura_renda_proporcao"], 1)
             self.assertIsNone(official["gini_estimado"])
             self.assertEqual(official["total_setores"], len(official["cd_setores"]))

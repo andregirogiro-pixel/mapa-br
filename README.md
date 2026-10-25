@@ -2,7 +2,8 @@
 
 Base de uma plataforma analítica do Brasil: País → Região → UF → Município →
 Bairro/Setor. Há um gerador offline de demonstração; frontend React, API,
-geometrias e ingestão real do Censo ainda não foram implementados.
+geometrias e download automático do Censo ainda não foram implementados.
+O adaptador `02_ingest_ibge_real.py` processa arquivos locais via manifesto explícito.
 
 ## Gerar e testar
 
@@ -10,7 +11,7 @@ Python 3.11+, sem dependências externas para estes comandos:
 
 ```bash
 python3 etl_pipeline/01_build_uf_base.py --date 2026-10-25
-python3 -m unittest discover -s etl_pipeline/tests -v
+python3 -m unittest discover -s etl_pipeline/tests -p test_build_uf_base.py -v
 ```
 
 Sem `--date`, usa data UTC. `--output-dir /tmp/mapa-br-demo` escolhe outro destino.
@@ -52,7 +53,8 @@ exclusiva dos responsáveis. País/região também não calculam renda sem pesos
 
 Bairros oficiais e fallback usam a mesma agregação e o mesmo schema. Códigos
 ficam como strings; a entrada normaliza espaços e caixa dos sufixos. O fallback
-não fabrica código de bairro. Os setores precisam de vínculo territorial validado.
+não fabrica código de bairro. IDs oficiais são `bairro:{cd_bairro}`; fallback
+usa `subdist:{cd_subdist}:{urbano|rural}`. Os setores precisam de vínculo territorial validado.
 
 Renda usa `responsaveis_renda`, nunca o total físico `domicilios`. O peso não
 pode exceder população nem domicílios. Massa de rendimento prevalece sobre média,
@@ -63,9 +65,10 @@ publicadas. `None` não é automaticamente sigilo. Arredondamento final:
 Decimal/ROUND_HALF_EVEN. Gini não é estimado pela média de Ginis.
 
 PIB canônico: `pib_mil_reais` inteiro nas fixtures; bilhões são derivados. Fontes
-com frações precisarão de adaptação decimal explícita. Release do Censo e
-mapeamentos de variáveis continuam nulos: o perfil de sufixos e as nomenclaturas
-não foram verificados contra um arquivo real.
+com frações são suportadas no adaptador por `pib_mil_reais_exato` (texto decimal),
+fonte canônica dos rollups. Os campos numéricos são projeções para a interface.
+Release e mapeamentos continuam nulos na demo; no adaptador vêm do manifesto.
+O perfil de sufixos e as nomenclaturas ainda precisam ser verificados na fonte escolhida.
 
 Cada JSON é validado sem serialização e gravado uma vez, com troca atômica por
 arquivo. O gerador mantém um detalhe municipal por vez, sem montar um lote
@@ -81,5 +84,47 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r etl_pipeline/requirements.txt
 ```
 
-Os requisitos preparam ingestão futura e não são um lockfile. Não há downloads
-de bases, credenciais ou serviços necessários para o gerador e seus testes.
+Os requisitos incluem pyarrow para Parquet e não são um lockfile. Para a suíte
+completa, incluindo Parquet, após instalar as dependências:
+
+```bash
+.venv/bin/python -m unittest discover -s etl_pipeline/tests -v
+```
+
+Para rodar apenas os testes da demo sem dependências externas:
+
+```bash
+python3 -m unittest discover -s etl_pipeline/tests -p test_build_uf_base.py -v
+```
+
+## Ingestão local parametrizada
+
+`core_contract.py` contém o único motor de validação/agregação usado por 01 e 02.
+Preencha uma cópia de `etl_pipeline/manifests/template.json` a partir do dicionário
+da release. O template não é um mapeamento oficial. Consulte
+[o contrato de adaptação](etl_pipeline/manifests/README.md).
+
+```bash
+.venv/bin/python etl_pipeline/02_ingest_ibge_real.py \
+  --manifest /caminho/manifesto.json \
+  --setores /caminho/setores.csv \
+  --pib /caminho/pib.csv \
+  --output-dir data/processed_real
+```
+
+CSV preserva códigos como texto; Parquet com código numérico aborta antes da
+leitura. A renda usa Decimal e distingue sigilo de ausência. Dados territoriais,
+demográficos e de renda devem chegar consolidados por setor. O adaptador não
+baixa bases nem confirma automaticamente o dicionário ou a completude da malha.
+
+Bairros oficiais e fallback por subdistrito + urbano/rural coexistem. Totais são
+reconciliados por município; PIB, população e renda são agregados bottom-up.
+A massa parcial divulgada fica em `massa_rendimento_considerada` como texto decimal.
+Se o denominador foi suprimido, a cobertura fica null e os setores desconhecidos
+são contados. Não interpretar a soma conhecida como universo completo.
+
+O staging usa SQLite temporário em disco; somente um município de setores fica
+em memória. Saídas reais ficam separadas da demo, com os mesmos caminhos de
+carregamento progressivo. Use destino novo/vazio por release. Fora do recorte,
+os resumos ficam null; o resumo nacional representa o recorte fornecido.
+PIB per capita usa população do Censo e informa ambos os períodos nos metadados.

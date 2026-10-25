@@ -1,0 +1,30 @@
+{
+  "release_censo": "PREENCHER_RELEASE_EXATA_VERIFICADA_NO_DICIONARIO",
+  "periodo_censo": "2022",
+  "periodo_pib": "2021",
+  "universo_renda": "PREENCHER_UNIVERSO_EXATO_DA_MEDIA_E_MASSA",
+  "csv_encoding": "utf-8-sig",
+  "csv_delimiter": ";",
+  "decimal_separator": ",",
+  "col_map_setor": {
+    "cd_setor": "COLUNA_SETOR",
+    "cd_mun": "COLUNA_MUNICIPIO",
+    "nm_mun": "COLUNA_NOME_MUNICIPIO",
+    "cd_dist": "COLUNA_DISTRITO",
+    "nm_dist": "COLUNA_NOME_DISTRITO",
+    "cd_subdist": "COLUNA_SUBDISTRITO",
+    "nm_subdist": "COLUNA_NOME_SUBDISTRITO",
+    "cd_bairro": "COLUNA_BAIRRO",
+    "nm_bairro": "COLUNA_NOME_BAIRRO",
+    "situacao_setor": "COLUNA_SITUACAO",
+    "populacao": "COLUNA_MORADORES",
+    "domicilios": "COLUNA_DOMICILIOS_TOTAIS",
+    "responsaveis_renda": "COLUNA_UNIVERSO_RENDA",
+    "renda_media_responsavel": "COLUNA_MEDIA_RENDA",
+    "massa_rendimento_setor": "COLUNA_MASSA_RENDA"
+  },
+  "col_map_pib_mun": {
+    "cd_mun": "COLUNA_MUNICIPIO_PIB",
+    "pib_mil_reais": "COLUNA_PIB_MIL_REAIS"
+  }
+}

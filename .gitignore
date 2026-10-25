@@ -29,6 +29,7 @@ coverage/
 # Raw/heavy geospatial and tabular data (including shapefile sidecars)
 data/raw/*
 !data/raw/.gitkeep
+data/processed_real/
 *.shp
 *.shx
 *.dbf
