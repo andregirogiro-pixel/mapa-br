@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from etl_pipeline import core_contract
 
@@ -248,6 +249,110 @@ class IngestTests(unittest.TestCase):
         self.save([])
         self.sectors_path = self.root / "setores.parquet"
         pq.write_table(pa.Table.from_pylist([row]), self.sectors_path)
+        self.run_ingest()
+        self.assertEqual(self.read("brasil.json")["resumo_brasil"]["renda_media_responsavel"], 100.5)
+
+    def test_mapped_mass_mean_statuses_cannot_disagree(self):
+        for mean, mass in (("X", "0"), ("0", "X"), ("100", ".."),
+                           ("..", "100"), ("X", ".."), ("..", "X")):
+            self.save([self.row(renda_media_responsavel=mean, massa_rendimento_setor=mass)])
+            with self.subTest(mean=mean, mass=mass), self.assertRaisesRegex(ValueError, "Status contraditórios"):
+                self.run_ingest()
+        self.assertFalse(self.output.exists())
+
+    def test_matching_zero_sigilo_and_absence_remain_distinct(self):
+        for token, expected, coverage in (("0", 0.0, 1.0), ("X", None, 0.0), ("..", None, 0.0)):
+            self.save([self.row(renda_media_responsavel=token, massa_rendimento_setor=token)])
+            self.run_ingest()
+            indicators = self.read("brasil.json")["resumo_brasil"]
+            self.assertEqual(indicators["renda_media_responsavel"], expected)
+            self.assertEqual(indicators["cobertura_renda_proporcao"], coverage)
+            self.assertEqual(indicators["setores_sob_sigilo"], 1 if token == "X" else 0)
+
+    def test_invalid_row_fails_during_staging_without_building_aggregates(self):
+        self.save([self.row(1), self.row(2, responsaveis_renda="500")])
+        with patch.object(adapter, "aggregate_sectors", side_effect=AssertionError("Agregação prematura")):
+            with self.assertRaisesRegex(ValueError, "responsáveis excedem"):
+                self.run_ingest()
+        self.assertFalse(self.output.exists())
+
+    def test_fixture_and_ingestion_have_identical_indicator_schemas(self):
+        self.save(self.hybrid_rows())
+        real_paths = self.run_ingest()
+        demo_paths = demo.build(self.root / "demo", "2026-10-25")
+        def blocks(payload):
+            level = payload["metadata"]["nivel"]
+            if level == "brasil":
+                yield payload["resumo_brasil"]
+                yield from (r["indicadores"] for r in payload["regioes"] if r["indicadores"] is not None)
+                yield from (u["resumo_uf"] for u in payload["ufs"] if u["resumo_uf"] is not None)
+            elif level == "uf":
+                yield payload["resumo_uf"]
+                yield from (m["indicadores"] for m in payload["municipios_resumo"])
+            else:
+                yield payload["municipio"]["indicadores"]
+        for path in real_paths + demo_paths:
+            payload = json.loads(path.read_text())
+            for indicators in blocks(payload):
+                self.assertEqual(set(indicators), core_contract.INDICATOR_KEYS)
+                self.assertIsNotNone(indicators["renda_media_responsavel"])
+            adapter.validate_payload(payload)
+        for path in (self.root / "demo/municipios").rglob("*.json"):
+            municipality = json.loads(path.read_text())["municipio"]
+            for field in ("populacao", "domicilios", "responsaveis_renda", "responsaveis_com_renda"):
+                self.assertEqual(sum(b[field] for b in municipality["bairros"]), municipality["indicadores"][field])
+        for uf in ("35", "42"):
+            payload = json.loads((self.root / f"demo/uf/{uf}.json").read_text())
+            self.assertEqual(payload["resumo_uf"], adapter.aggregate_summaries([
+                m["indicadores"] for m in payload["municipios_resumo"]]))
+
+    def test_missing_and_extra_indicator_fields_rejected_at_every_level(self):
+        self.save(self.hybrid_rows())
+        self.run_ingest()
+        cases = [
+            ("brasil.json", lambda p: p["resumo_brasil"]),
+            ("brasil.json", lambda p: next(r["indicadores"] for r in p["regioes"] if r["indicadores"])),
+            ("brasil.json", lambda p: next(u["resumo_uf"] for u in p["ufs"] if u["resumo_uf"])),
+            ("uf/42.json", lambda p: p["resumo_uf"]),
+            ("uf/42.json", lambda p: p["municipios_resumo"][0]["indicadores"]),
+            ("municipios/42/4205407.json", lambda p: p["municipio"]["indicadores"]),
+        ]
+        for path, block in cases:
+            for change in ("missing", "extra"):
+                payload = self.read(path)
+                indicators = block(payload)
+                if change == "missing":
+                    del indicators["cobertura_renda_proporcao"]
+                else:
+                    indicators["renda_media"] = 1
+                with self.subTest(path=path, change=change), self.assertRaisesRegex(ValueError, "schema canônico"):
+                    adapter.validate_payload(payload)
+
+    def test_parquet_monetary_float_or_nan_rejected_by_schema(self):
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        self.save([])
+        self.sectors_path = self.root / "float_money.parquet"
+        for value in (100.1 + 0.2, float("nan"), 0.0):
+            row = self.row()
+            row[self.manifest.col_map_setor["renda_media_responsavel"]] = value
+            pq.write_table(pa.Table.from_pylist([row]), self.sectors_path)
+            with self.subTest(value=value), self.assertRaisesRegex(TypeError, "moeda.*exige string ou decimal"):
+                self.run_ingest()
+        self.assertFalse(self.output.exists())
+
+    def test_parquet_text_locale_is_independent_from_csv_locale(self):
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        self.save([])
+        self.sectors_path = self.root / "text_money.parquet"
+        row = self.row(renda_media_responsavel="100.50", massa_rendimento_setor="1005.00")
+        pq.write_table(pa.Table.from_pylist([row]), self.sectors_path)
+        self.run_ingest()
+        self.assertEqual(self.read("brasil.json")["resumo_brasil"]["renda_media_responsavel"], 100.5)
+        row = self.row()
+        pq.write_table(pa.Table.from_pylist([row]), self.sectors_path)
+        self.manifest = replace(self.manifest, parquet_decimal_separator=",")
         self.run_ingest()
         self.assertEqual(self.read("brasil.json")["resumo_brasil"]["renda_media_responsavel"], 100.5)
 

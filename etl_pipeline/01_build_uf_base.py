@@ -14,40 +14,38 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from etl_pipeline.core_contract import (
     normalize_code, validate_code, nonnegative, aggregate_sectors,
-    aggregate_summaries, validate_payload, write_payload,
+    aggregate_summaries, validate_payload, write_payload, indicators_from_totals,
 )
 
 from etl_pipeline.reference_data import UFS, REGIOES, common_metadata
 
 
 def state_summary(index: int) -> dict:
-    # Fórmula deliberadamente sintética; não aproxima estatísticas reais.
+    # Resumo das UFs sem detalhe: um setor interno inteiramente sintético.
+    # Seu identificador de formato não é exportado nem tratado como código oficial.
     population = 1_000_000 + index * 250_000
-    # Unidade canônica inteira em mil reais nas fixtures, sem round intermediário.
-    gdp_mil = population * (25_000 + index * 1_000) // 1000
-    return {
-        "populacao": population,
-        "pib_mil_reais": gdp_mil,
-        "pib_total_bi": gdp_mil / 1_000_000,
-        "pib_per_capita": round(gdp_mil * 1000 / population, 2),
-        "renda_media_domiciliar": 2_000.0 + index * 75,
-        "renda_media_responsavel": None,
-        "gini": round(0.4 + (index % 8) * 0.01, 2),
-    }
+    municipality = UFS[index][0] + "00000"
+    totals = aggregate_sectors([{
+        "cd_setor": municipality + "00000001", "populacao": population,
+        "domicilios": population // 2, "responsaveis_renda": population // 3,
+        "renda_media_responsavel": 2000 + index * 75,
+    }], cd_mun=municipality, id_agregacao="demo:resumo", nm_bairro="Resumo sintético")
+    return indicators_from_totals(totals, population * (25_000 + index * 1000) // 1000)
 
 
 def demo_municipality(code: str, name: str, index: int) -> dict:
     code = normalize_code(code, "cd_mun")
-    official_scenario = aggregate_sectors([
+    official_sectors = [
         {"cd_setor": code + "00000004", "populacao": 1200 + index * 100,
          "domicilios": 400 + index * 30, "responsaveis_renda": 350 + index * 20,
          "renda_media_responsavel": 4200.0 + index * 100},
         {"cd_setor": code + "00000005", "populacao": 6,
          "domicilios": 3, "responsaveis_renda": 2,
          "renda_media_responsavel": None, "status_renda": "sigilo"},
-    ], cd_mun=code, cd_bairro=code + "001", id_agregacao=code + "001",
+    ]
+    official_scenario = aggregate_sectors(official_sectors, cd_mun=code, cd_bairro=code + "001", id_agregacao=code + "001",
        nm_bairro="Centro (demonstração)")
-    fallback = aggregate_sectors([
+    fallback_sectors = [
         {"cd_setor": code + "00000001", "populacao": 300,
          "domicilios": 160, "responsaveis_renda": 100,
          "renda_media_responsavel": 2000.0, "massa_rendimento_setor": 200000},
@@ -57,19 +55,15 @@ def demo_municipality(code: str, name: str, index: int) -> dict:
         {"cd_setor": code + "00000003", "populacao": 12,
          "domicilios": 8, "responsaveis_renda": 4,
          "renda_media_responsavel": None, "status_renda": "sigilo"},
-    ], cd_mun=code, id_agregacao=f"demo:{code}:grupo-01",
+    ]
+    fallback = aggregate_sectors(fallback_sectors, cd_mun=code, id_agregacao=f"demo:{code}:grupo-01",
        nm_bairro="Área sem bairro oficial (demonstração)")
-    population = 100_000 + index * 50_000
-    gdp = population * (40_000 + index * 2000) // 1000
+    totals = aggregate_sectors(official_sectors + fallback_sectors, cd_mun=code,
+                               id_agregacao=f"municipio:{code}", nm_bairro=name)
+    gdp = 100_000 + index * 50_000
     return {
         "cd_mun": code, "nm_mun": name,
-        "indicadores": {
-            "populacao": population,
-            "pib_mil_reais": gdp, "pib_total_bi": gdp / 1_000_000,
-            "pib_per_capita": round(gdp * 1000 / population, 2),
-            "renda_media_domiciliar": 3500.0 + index * 200,
-            "renda_media_responsavel": None, "gini": 0.49,
-        },
+        "indicadores": indicators_from_totals(totals, gdp),
         "bairros": [official_scenario, fallback],
     }
 
@@ -89,7 +83,7 @@ def build(output_dir: Path, updated_at: str) -> list[Path]:
             "sigla_uf": sigla, "nm_uf": name, "cd_regiao": region,
             "nm_regiao": REGIOES[region],
         }
-        summary = state_summary(index)
+        summary = {} if code in demos else state_summary(index)
         ufs.append({
             "metadata": {key: metadata[key] for key in (
                 "cd_uf", "sigla_uf", "nm_uf", "cd_regiao", "nm_regiao", "updated_at",
@@ -118,6 +112,7 @@ def build(output_dir: Path, updated_at: str) -> list[Path]:
                 # Caminho relativo ao próprio arquivo da UF, não ao índice nacional.
                 "arquivo": f"../municipios/{code}/{municipality_code}.json",
             })
+        summary.update(aggregate_summaries([m["indicadores"] for m in municipality_summaries]))
         uf_path = output_dir / "uf" / f"{code}.json"
         write_payload(uf_path, {
             "metadata": {**metadata, "cobertura_municipios": "amostra_simulada"},

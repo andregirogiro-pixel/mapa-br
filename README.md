@@ -29,7 +29,8 @@ data/processed/
 
 **Todos os indicadores são simulados.** Só nomes/códigos de região, UF e município
 correspondem à divisão oficial. Códigos de bairros/setores são fixtures de formato,
-sem vínculo oficial verificado. Amostras não reconciliam com totais estaduais.
+sem vínculo oficial verificado. SP/SC reconciliam os totais de seus municípios
+e bairros demonstrativos; as outras 25 UFs têm apenas resumos sintéticos.
 
 ## Contrato 2.0 e carregamento sob demanda
 
@@ -128,3 +129,22 @@ em memória. Saídas reais ficam separadas da demo, com os mesmos caminhos de
 carregamento progressivo. Use destino novo/vazio por release. Fora do recorte,
 os resumos ficam null; o resumo nacional representa o recorte fornecido.
 PIB per capita usa população do Censo e informa ambos os períodos nos metadados.
+
+## Contrato único para frontend e ingestão
+
+Os blocos de indicadores têm as mesmas 19 chaves em ambos os geradores e nos
+níveis município, UF, região e país. O validador rejeita chaves faltantes/extras.
+As fixtures agora preenchem renda do responsável, cobertura, domicílios e
+contagens a partir dos próprios setores; SP/SC são agregados dos municípios.
+Para as outras 25 UFs, só há resumos de setores internos totalmente sintéticos,
+sem exportar identificadores ou detalhes municipais. Gini e renda domiciliar
+sem base adequada ficam null. `INDICATOR_KEYS` é a referência em core_contract.py.
+
+O adaptador exige status iguais quando média e massa estão ambas mapeadas.
+Parquet monetário aceita somente texto/decimal128/256: float, inclusive NaN,
+é rejeitado, sem arredondamento automático. O separador de texto Parquet é
+`parquet_decimal_separator` (padrão ponto), independente do CSV.
+
+A carga SQLite usa validação leve por setor; não constrói um agregado descartável
+para cada linha. A tolerância massa/média permanece R$ 0,05. PIB total permanece
+não negativo; componentes econômicos assinados exigiriam métricas separadas.

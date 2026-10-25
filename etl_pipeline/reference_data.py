@@ -1,5 +1,5 @@
 """Cadastro geográfico e metadados comuns, sem acesso à rede."""
-from etl_pipeline.core_contract import MEAN_TOLERANCE
+from etl_pipeline.core_contract import MEAN_TOLERANCE, COUNT_KEYS
 
 REGIOES = {
     "1": "Norte", "2": "Nordeste", "3": "Sudeste",
@@ -55,6 +55,8 @@ def indicator_metadata() -> dict:
         "renda_media_responsavel": "BRL/responsável/mês",
         "gini": "índice [0,1]", "gini_estimado": "índice [0,1]",
     }
+    for name in sorted(COUNT_KEYS):
+        units.setdefault(name, "setores")
     return {
         name: {"unidade": unit, "periodo_referencia": None,
                "fonte": "fixture sintética; sem período estatístico real"}

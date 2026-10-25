@@ -47,6 +47,43 @@ def nonnegative(value: int | float | Decimal, field: str, *, integer: bool = Fal
     return value
 
 
+def validate_sector_invariants(setor: dict) -> None:
+    """Valida uma linha já normalizada sem construir um agregado descartável."""
+    code = setor.get("cd_setor", "<sem código>")
+    population = nonnegative(setor["populacao"], "populacao", integer=True)
+    households = nonnegative(setor["domicilios"], "domicilios", integer=True)
+    weight = nonnegative(setor["responsaveis_renda"], "responsaveis_renda", integer=True)
+    if weight > population or weight > households:
+        raise ValueError(f"Setor {code}: responsáveis excedem população ou domicílios")
+    income = setor.get("renda_media_responsavel")
+    mass = setor.get("massa_rendimento_setor")
+    status = setor.get("status_renda", "ausente" if income is None and mass is None
+                       else "divulgada")
+    if status not in {"divulgada", "sigilo", "ausente"}:
+        raise ValueError("status_renda inválido")
+    if income is not None:
+        nonnegative(income, "renda_media_responsavel")
+    if mass is not None:
+        nonnegative(mass, "massa_rendimento_setor")
+    if mass is not None and income is not None and weight > 0:
+        # Comparação sem divisão: equivalente a |massa/peso - média| > 0.05,
+        # evita arredondar um quociente periódico no limite da tolerância.
+        difference = abs(Decimal(str(mass)) - Decimal(str(income)) * weight)
+        if difference > MEAN_TOLERANCE * weight:
+            raise ValueError(f"Setor {code}: massa e média incompatíveis para o peso informado")
+    available = mass is not None or income is not None
+    unknown_weight = setor.get("universo_renda_suprimido", False)
+    if not isinstance(unknown_weight, bool):
+        raise ValueError("universo_renda_suprimido deve ser booleano")
+    if unknown_weight and (weight != 0 or status != "sigilo" or available):
+        raise ValueError("Universo suprimido exige peso zero e renda/massa sob sigilo")
+    if (status == "divulgada") != available:
+        raise ValueError("status_renda incompatível com massa/média divulgada")
+    if weight == 0 and ((income is not None and income > 0)
+                        or (mass is not None and mass > 0)):
+        raise ValueError("Renda ou massa positiva com universo de renda zero")
+
+
 def aggregate_sectors(
     setores: list[dict], *, cd_mun: str, id_agregacao: str, nm_bairro: str,
     cd_bairro: str | None = None,
@@ -77,39 +114,14 @@ def aggregate_sectors(
         if not code.startswith(cd_mun) or code in seen:
             raise ValueError("Setor duplicado ou fora do município")
         seen.add(code)
-        population = nonnegative(setor["populacao"], "populacao", integer=True)
-        households = nonnegative(setor["domicilios"], "domicilios", integer=True)
-        weight = nonnegative(setor["responsaveis_renda"], "responsaveis_renda", integer=True)
-        if weight > population or weight > households:
-            raise ValueError(f"Setor {code}: responsáveis excedem população ou domicílios")
-        income = setor.get("renda_media_responsavel")
-        mass = setor.get("massa_rendimento_setor")
-        status = setor.get("status_renda", "ausente" if income is None and mass is None
-                           else "divulgada")
-        if status not in {"divulgada", "sigilo", "ausente"}:
-            raise ValueError("status_renda inválido")
-        if income is not None:
-            nonnegative(income, "renda_media_responsavel")
-        if mass is not None:
-            nonnegative(mass, "massa_rendimento_setor")
-        if mass is not None and income is not None and weight > 0:
-            # Comparação sem divisão: equivalente a |massa/peso - média| > 0.05,
-            # evita arredondar um quociente periódico no limite da tolerância.
-            difference = abs(Decimal(str(mass)) - Decimal(str(income)) * weight)
-            if difference > MEAN_TOLERANCE * weight:
-                raise ValueError(f"Setor {code}: massa e média incompatíveis para o peso informado")
-        available = mass is not None or income is not None
+        validate_sector_invariants(setor)
+        population, households, weight = (setor[k] for k in
+            ("populacao", "domicilios", "responsaveis_renda"))
+        income, mass = setor.get("renda_media_responsavel"), setor.get("massa_rendimento_setor")
+        available = income is not None or mass is not None
+        status = setor.get("status_renda", "divulgada" if available else "ausente")
         unknown_weight = setor.get("universo_renda_suprimido", False)
-        if not isinstance(unknown_weight, bool):
-            raise ValueError("universo_renda_suprimido deve ser booleano")
-        if unknown_weight and (weight != 0 or status != "sigilo" or available):
-            raise ValueError("Universo suprimido exige peso zero e renda/massa sob sigilo")
         universo_suprimido += unknown_weight
-        if (status == "divulgada") != available:
-            raise ValueError("status_renda incompatível com massa/média divulgada")
-        if weight == 0 and ((income is not None and income > 0)
-                            or (mass is not None and mass > 0)):
-            raise ValueError("Renda ou massa positiva com universo de renda zero")
         if available and weight:
             if mass is not None:
                 income_sum += Decimal(str(mass))
@@ -138,6 +150,7 @@ def aggregate_sectors(
         "metodo_agregacao": method,
         "populacao": populacao,
         "pib_mil_reais": None,
+        "pib_mil_reais_exato": None,
         "pib_total_bi": None,
         "pib_per_capita": None,
         "renda_media_domiciliar": None,
@@ -162,6 +175,59 @@ def aggregate_sectors(
 
 
 
+COUNT_KEYS = frozenset({
+    "domicilios", "responsaveis_renda", "responsaveis_com_renda", "setores_sem_renda",
+    "setores_sob_sigilo", "setores_por_massa", "setores_por_media",
+    "setores_universo_renda_suprimido", "total_setores",
+})
+INDICATOR_KEYS = COUNT_KEYS | {
+    "populacao", "pib_mil_reais", "pib_mil_reais_exato", "pib_total_bi", "pib_per_capita",
+    "renda_media_domiciliar", "renda_media_responsavel", "gini",
+    "massa_rendimento_considerada", "cobertura_renda_proporcao",
+}
+
+
+def gdp_fields(gdp: int | Decimal, population: int) -> dict:
+    nonnegative(gdp, "pib_mil_reais")
+    nonnegative(population, "populacao", integer=True)
+    gdp = Decimal(str(gdp))
+    return {
+        "pib_mil_reais": int(gdp) if gdp == gdp.to_integral_value() else float(gdp),
+        "pib_mil_reais_exato": format(gdp, "f"),
+        "pib_total_bi": float(gdp / 1_000_000),
+        "pib_per_capita": float((gdp * 1000 / population).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_EVEN)) if population else None,
+    }
+
+
+def indicators_from_totals(totals: dict, gdp: int | Decimal) -> dict:
+    """Projeção única dos totais censitários + PIB, usada por fixtures e ingestão."""
+    result = {key: totals[key] for key in sorted(INDICATOR_KEYS) if key not in {
+        "pib_mil_reais", "pib_mil_reais_exato", "pib_total_bi", "pib_per_capita"}}
+    result.update(gdp_fields(gdp, totals["populacao"]))
+    return result
+
+
+def validate_indicators(value: dict) -> None:
+    if not isinstance(value, dict) or set(value) != INDICATOR_KEYS:
+        raise ValueError("Indicadores devem obedecer ao schema canônico de chaves")
+    nonnegative(value["populacao"], "populacao", integer=True)
+    for key in COUNT_KEYS:
+        if value[key] is not None:
+            nonnegative(value[key], key, integer=True)
+    for key in ("pib_mil_reais_exato", "massa_rendimento_considerada"):
+        if value[key] is not None:
+            if not isinstance(value[key], str) or not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", value[key]):
+                raise ValueError(f"{key} deve ser texto decimal exato não negativo")
+    for key in ("pib_mil_reais", "pib_total_bi", "pib_per_capita", "renda_media_domiciliar",
+                "renda_media_responsavel", "gini", "cobertura_renda_proporcao"):
+        if value[key] is not None:
+            nonnegative(value[key], key)
+    for key in ("gini", "cobertura_renda_proporcao"):
+        if value[key] is not None and value[key] > 1:
+            raise ValueError(f"{key} deve estar entre 0 e 1")
+
+
 def aggregate_summaries(summaries: list[dict]) -> dict:
     # Contrato das fixtures: PIB inteiro em mil reais. O adaptador de uma fonte
     # com frações deve preservar sua escala exata, nunca truncar para int.
@@ -174,14 +240,8 @@ def aggregate_summaries(summaries: list[dict]) -> dict:
     population = sum(s["populacao"] for s in summaries)
     gdp = sum((Decimal(s.get("pib_mil_reais_exato", str(s["pib_mil_reais"])))
                for s in summaries), Decimal(0))
-    result = {
-        "populacao": population, "pib_mil_reais": int(gdp) if gdp == gdp.to_integral_value() else float(gdp),
-        "pib_total_bi": float(gdp / 1_000_000),
-        "pib_per_capita": float((gdp * 1000 / population).quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)) if population else None,
-        "renda_media_domiciliar": None, "renda_media_responsavel": None, "gini": None,
-    }
-    if any("pib_mil_reais_exato" in s for s in summaries):
-        result["pib_mil_reais_exato"] = format(gdp, "f")
+    result = {key: None for key in sorted(INDICATOR_KEYS)}
+    result.update(populacao=population, **gdp_fields(gdp, population))
     if summaries and all("massa_rendimento_considerada" in s for s in summaries):
         for key in ("domicilios", "responsaveis_renda", "responsaveis_com_renda",
                     "setores_sem_renda", "setores_sob_sigilo", "setores_por_massa",
@@ -194,8 +254,10 @@ def aggregate_summaries(summaries: list[dict]) -> dict:
         result["renda_media_responsavel"] = float((mass / valid).quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)) if valid else None
         result["cobertura_renda_proporcao"] = (round(valid / total, 4) if total and not
             result["setores_universo_renda_suprimido"] else None)
+    if not summaries:
+        result.update({key: 0 for key in COUNT_KEYS})
+        result["massa_rendimento_considerada"] = "0"
     return result
-
 
 
 def validate_payload(payload: dict) -> None:
@@ -235,6 +297,7 @@ def validate_payload(payload: dict) -> None:
     if level not in {"brasil", "uf", "municipio"}:
         fail("metadata.nivel deve ser brasil, uf ou municipio")
     if level == "brasil":
+        validate_indicators(payload.get("resumo_brasil"))
         if not isinstance(payload.get("ufs"), list) or len(payload["ufs"]) != 27:
             fail("Índice deve conter as 27 UFs")
         if not isinstance(payload.get("regioes"), list) or len(payload["regioes"]) != 5:
@@ -245,9 +308,18 @@ def validate_payload(payload: dict) -> None:
             if not isinstance(uf, dict) or not isinstance(uf.get("metadata"), dict):
                 fail("UF do índice malformada")
             validate_code(uf["metadata"].get("cd_uf"), "cd_uf")
+        for record in payload["ufs"]:
+            if record.get("resumo_uf") is not None:
+                validate_indicators(record["resumo_uf"])
+        for region in payload["regioes"]:
+            if not isinstance(region, dict) or "indicadores" not in region:
+                fail("Região malformada")
+            if region["indicadores"] is not None:
+                validate_indicators(region["indicadores"])
         return
     uf = validate_code(payload["metadata"].get("cd_uf"), "cd_uf")
     if level == "uf":
+        validate_indicators(payload.get("resumo_uf"))
         if "municipios" in payload or not isinstance(payload.get("municipios_resumo"), list):
             fail("UF precisa de municipios_resumo, sem detalhes embutidos")
         records = payload["municipios_resumo"]
@@ -267,6 +339,7 @@ def validate_payload(payload: dict) -> None:
         if not code.startswith(uf) or code in seen_municipalities:
             fail("Município duplicado ou fora da UF")
         seen_municipalities.add(code)
+        validate_indicators(municipio.get("indicadores"))
         if level == "uf":
             if any(key in municipio for key in ("bairros", "cd_setores")):
                 fail("Resumo municipal não pode embutir bairros ou setores")
@@ -279,18 +352,13 @@ def validate_payload(payload: dict) -> None:
         for bairro in municipio["bairros"]:
             if not isinstance(bairro, dict):
                 fail("Bairro inválido")
-            required = {
+            required = INDICATOR_KEYS | {
                 "cd_bairro", "id_agregacao", "nm_bairro", "origem_malha",
-                "cd_setores", "total_setores", "metodo_agregacao", "populacao",
-                "domicilios", "responsaveis_renda", "responsaveis_com_renda",
-                "setores_sem_renda", "setores_sob_sigilo", "setores_por_massa",
-                "setores_por_media", "cobertura_renda_proporcao",
-                "renda_media_responsavel", "renda_media_domiciliar",
-                "pib_mil_reais", "pib_total_bi", "pib_per_capita", "gini", "gini_estimado",
-                "massa_rendimento_considerada", "setores_universo_renda_suprimido",
+                "cd_setores", "metodo_agregacao", "gini_estimado",
             }
             if set(bairro) != required:
                 fail("Bairro deve obedecer ao schema único de detalhe")
+            validate_indicators({key: bairro[key] for key in INDICATOR_KEYS})
             origin, bairro_code = bairro["origem_malha"], bairro["cd_bairro"]
             group_id = bairro["id_agregacao"]
             if not isinstance(group_id, str) or not group_id.strip() or group_id in seen_groups:

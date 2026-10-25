@@ -79,6 +79,31 @@
         "unidade": "índice [0,1]",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_massa": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_media": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sem_renda": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sob_sigilo": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "total_setores": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
       }
     },
     "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
@@ -90,78 +115,150 @@
     "nivel": "brasil"
   },
   "resumo_brasil": {
-    "populacao": 114750000,
-    "pib_mil_reais": 4770000000,
-    "pib_total_bi": 4770.0,
-    "pib_per_capita": 41568.63,
+    "cobertura_renda_proporcao": 1.0,
+    "domicilios": 51379144,
+    "gini": null,
+    "massa_rendimento_considerada": "110030448925.0",
+    "pib_mil_reais": 4230000000,
+    "pib_mil_reais_exato": "4230000000",
+    "pib_per_capita": 41164.41,
+    "pib_total_bi": 4230.0,
+    "populacao": 102758672,
     "renda_media_domiciliar": null,
-    "renda_media_responsavel": null,
-    "gini": null
+    "renda_media_responsavel": 3212.28,
+    "responsaveis_com_renda": 34253032,
+    "responsaveis_renda": 34253056,
+    "setores_por_massa": 4,
+    "setores_por_media": 33,
+    "setores_sem_renda": 8,
+    "setores_sob_sigilo": 8,
+    "setores_universo_renda_suprimido": 0,
+    "total_setores": 45
   },
   "regioes": [
     {
       "cd_regiao": "1",
       "nm_regiao": "Norte",
       "indicadores": {
-        "populacao": 12250000,
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 6125000,
+        "gini": null,
+        "massa_rendimento_considerada": "9260411525",
         "pib_mil_reais": 350000000,
-        "pib_total_bi": 350.0,
+        "pib_mil_reais_exato": "350000000",
         "pib_per_capita": 28571.43,
+        "pib_total_bi": 350.0,
+        "populacao": 12250000,
         "renda_media_domiciliar": null,
-        "renda_media_responsavel": null,
-        "gini": null
+        "renda_media_responsavel": 2267.86,
+        "responsaveis_com_renda": 4083331,
+        "responsaveis_renda": 4083331,
+        "setores_por_massa": 0,
+        "setores_por_media": 7,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 7
       }
     },
     {
       "cd_regiao": "2",
       "nm_regiao": "Nordeste",
       "indicadores": {
-        "populacao": 33750000,
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 16875000,
+        "gini": null,
+        "massa_rendimento_considerada": "32156241600",
         "pib_mil_reais": 1230000000,
-        "pib_total_bi": 1230.0,
+        "pib_mil_reais_exato": "1230000000",
         "pib_per_capita": 36444.44,
+        "pib_total_bi": 1230.0,
+        "populacao": 33750000,
         "renda_media_domiciliar": null,
-        "renda_media_responsavel": null,
-        "gini": null
+        "renda_media_responsavel": 2858.33,
+        "responsaveis_com_renda": 11249997,
+        "responsaveis_renda": 11249997,
+        "setores_por_massa": 0,
+        "setores_por_media": 9,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 9
       }
     },
     {
       "cd_regiao": "3",
       "nm_regiao": "Sudeste",
       "indicadores": {
-        "populacao": 21500000,
-        "pib_mil_reais": 915000000,
-        "pib_total_bi": 915.0,
-        "pib_per_capita": 42558.14,
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 7877072,
+        "gini": null,
+        "massa_rendimento_considerada": "17212107750.0",
+        "pib_mil_reais": 662250000,
+        "pib_mil_reais_exato": "662250000",
+        "pib_per_capita": 42036.05,
+        "pib_total_bi": 662.25,
+        "populacao": 15754336,
         "renda_media_domiciliar": null,
-        "renda_media_responsavel": null,
-        "gini": null
+        "renda_media_responsavel": 3277.55,
+        "responsaveis_com_renda": 5251519,
+        "responsaveis_renda": 5251531,
+        "setores_por_massa": 2,
+        "setores_por_media": 7,
+        "setores_sem_renda": 4,
+        "setores_sob_sigilo": 4,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 13
       }
     },
     {
       "cd_regiao": "4",
       "nm_regiao": "Sul",
       "indicadores": {
-        "populacao": 18750000,
-        "pib_mil_reais": 863000000,
-        "pib_total_bi": 863.0,
-        "pib_per_capita": 46026.67,
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 6252072,
+        "gini": null,
+        "massa_rendimento_considerada": "14914191900.0",
+        "pib_mil_reais": 575750000,
+        "pib_mil_reais_exato": "575750000",
+        "pib_per_capita": 46044.03,
+        "pib_total_bi": 575.75,
+        "populacao": 12504336,
         "renda_media_domiciliar": null,
-        "renda_media_responsavel": null,
-        "gini": null
+        "renda_media_responsavel": 3578.1,
+        "responsaveis_com_renda": 4168186,
+        "responsaveis_renda": 4168198,
+        "setores_por_massa": 2,
+        "setores_por_media": 6,
+        "setores_sem_renda": 4,
+        "setores_sob_sigilo": 4,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 12
       }
     },
     {
       "cd_regiao": "5",
       "nm_regiao": "Centro-Oeste",
       "indicadores": {
-        "populacao": 28500000,
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 14250000,
+        "gini": null,
+        "massa_rendimento_considerada": "36487496150",
         "pib_mil_reais": 1412000000,
-        "pib_total_bi": 1412.0,
+        "pib_mil_reais_exato": "1412000000",
         "pib_per_capita": 49543.86,
+        "pib_total_bi": 1412.0,
+        "populacao": 28500000,
         "renda_media_domiciliar": null,
-        "renda_media_responsavel": null,
-        "gini": null
+        "renda_media_responsavel": 3840.79,
+        "responsaveis_com_renda": 9499999,
+        "responsaveis_renda": 9499999,
+        "setores_por_massa": 0,
+        "setores_por_media": 4,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 4
       }
     }
   ],
@@ -176,13 +273,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 500000,
+        "gini": null,
+        "massa_rendimento_considerada": "666666000",
         "populacao": 1000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2000.0,
+        "responsaveis_com_renda": 333333,
+        "responsaveis_renda": 333333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 25000000,
+        "pib_mil_reais_exato": "25000000",
         "pib_total_bi": 25.0,
-        "pib_per_capita": 25000.0,
-        "renda_media_domiciliar": 2000.0,
-        "renda_media_responsavel": null,
-        "gini": 0.4
+        "pib_per_capita": 25000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -197,13 +306,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 625000,
+        "gini": null,
+        "massa_rendimento_considerada": "864581950",
         "populacao": 1250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2075.0,
+        "responsaveis_com_renda": 416666,
+        "responsaveis_renda": 416666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 32500000,
+        "pib_mil_reais_exato": "32500000",
         "pib_total_bi": 32.5,
-        "pib_per_capita": 26000.0,
-        "renda_media_domiciliar": 2075.0,
-        "renda_media_responsavel": null,
-        "gini": 0.41
+        "pib_per_capita": 26000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -218,13 +339,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 750000,
+        "gini": null,
+        "massa_rendimento_considerada": "1075000000",
         "populacao": 1500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2150.0,
+        "responsaveis_com_renda": 500000,
+        "responsaveis_renda": 500000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 40500000,
+        "pib_mil_reais_exato": "40500000",
         "pib_total_bi": 40.5,
-        "pib_per_capita": 27000.0,
-        "renda_media_domiciliar": 2150.0,
-        "renda_media_responsavel": null,
-        "gini": 0.42
+        "pib_per_capita": 27000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -239,13 +372,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 875000,
+        "gini": null,
+        "massa_rendimento_considerada": "1297915925",
         "populacao": 1750000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2225.0,
+        "responsaveis_com_renda": 583333,
+        "responsaveis_renda": 583333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 49000000,
+        "pib_mil_reais_exato": "49000000",
         "pib_total_bi": 49.0,
-        "pib_per_capita": 28000.0,
-        "renda_media_domiciliar": 2225.0,
-        "renda_media_responsavel": null,
-        "gini": 0.43
+        "pib_per_capita": 28000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -260,13 +405,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1000000,
+        "gini": null,
+        "massa_rendimento_considerada": "1533331800",
         "populacao": 2000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2300.0,
+        "responsaveis_com_renda": 666666,
+        "responsaveis_renda": 666666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 58000000,
+        "pib_mil_reais_exato": "58000000",
         "pib_total_bi": 58.0,
-        "pib_per_capita": 29000.0,
-        "renda_media_domiciliar": 2300.0,
-        "renda_media_responsavel": null,
-        "gini": 0.44
+        "pib_per_capita": 29000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -281,13 +438,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1125000,
+        "gini": null,
+        "massa_rendimento_considerada": "1781250000",
         "populacao": 2250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2375.0,
+        "responsaveis_com_renda": 750000,
+        "responsaveis_renda": 750000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 67500000,
+        "pib_mil_reais_exato": "67500000",
         "pib_total_bi": 67.5,
-        "pib_per_capita": 30000.0,
-        "renda_media_domiciliar": 2375.0,
-        "renda_media_responsavel": null,
-        "gini": 0.45
+        "pib_per_capita": 30000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -302,13 +471,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1250000,
+        "gini": null,
+        "massa_rendimento_considerada": "2041665850",
         "populacao": 2500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2450.0,
+        "responsaveis_com_renda": 833333,
+        "responsaveis_renda": 833333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 77500000,
+        "pib_mil_reais_exato": "77500000",
         "pib_total_bi": 77.5,
-        "pib_per_capita": 31000.0,
-        "renda_media_domiciliar": 2450.0,
-        "renda_media_responsavel": null,
-        "gini": 0.46
+        "pib_per_capita": 31000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -323,13 +504,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1375000,
+        "gini": null,
+        "massa_rendimento_considerada": "2314581650",
         "populacao": 2750000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2525.0,
+        "responsaveis_com_renda": 916666,
+        "responsaveis_renda": 916666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 88000000,
+        "pib_mil_reais_exato": "88000000",
         "pib_total_bi": 88.0,
-        "pib_per_capita": 32000.0,
-        "renda_media_domiciliar": 2525.0,
-        "renda_media_responsavel": null,
-        "gini": 0.47
+        "pib_per_capita": 32000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -344,13 +537,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1500000,
+        "gini": null,
+        "massa_rendimento_considerada": "2600000000",
         "populacao": 3000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2600.0,
+        "responsaveis_com_renda": 1000000,
+        "responsaveis_renda": 1000000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 99000000,
+        "pib_mil_reais_exato": "99000000",
         "pib_total_bi": 99.0,
-        "pib_per_capita": 33000.0,
-        "renda_media_domiciliar": 2600.0,
-        "renda_media_responsavel": null,
-        "gini": 0.4
+        "pib_per_capita": 33000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -365,13 +570,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1625000,
+        "gini": null,
+        "massa_rendimento_considerada": "2897915775",
         "populacao": 3250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2675.0,
+        "responsaveis_com_renda": 1083333,
+        "responsaveis_renda": 1083333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 110500000,
+        "pib_mil_reais_exato": "110500000",
         "pib_total_bi": 110.5,
-        "pib_per_capita": 34000.0,
-        "renda_media_domiciliar": 2675.0,
-        "renda_media_responsavel": null,
-        "gini": 0.41
+        "pib_per_capita": 34000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -386,13 +603,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1750000,
+        "gini": null,
+        "massa_rendimento_considerada": "3208331500",
         "populacao": 3500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2750.0,
+        "responsaveis_com_renda": 1166666,
+        "responsaveis_renda": 1166666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 122500000,
+        "pib_mil_reais_exato": "122500000",
         "pib_total_bi": 122.5,
-        "pib_per_capita": 35000.0,
-        "renda_media_domiciliar": 2750.0,
-        "renda_media_responsavel": null,
-        "gini": 0.42
+        "pib_per_capita": 35000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -407,13 +636,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 1875000,
+        "gini": null,
+        "massa_rendimento_considerada": "3531250000",
         "populacao": 3750000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2825.0,
+        "responsaveis_com_renda": 1250000,
+        "responsaveis_renda": 1250000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 135000000,
+        "pib_mil_reais_exato": "135000000",
         "pib_total_bi": 135.0,
-        "pib_per_capita": 36000.0,
-        "renda_media_domiciliar": 2825.0,
-        "renda_media_responsavel": null,
-        "gini": 0.43
+        "pib_per_capita": 36000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -428,13 +669,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2000000,
+        "gini": null,
+        "massa_rendimento_considerada": "3866665700",
         "populacao": 4000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2900.0,
+        "responsaveis_com_renda": 1333333,
+        "responsaveis_renda": 1333333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 148000000,
+        "pib_mil_reais_exato": "148000000",
         "pib_total_bi": 148.0,
-        "pib_per_capita": 37000.0,
-        "renda_media_domiciliar": 2900.0,
-        "renda_media_responsavel": null,
-        "gini": 0.44
+        "pib_per_capita": 37000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -449,13 +702,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2125000,
+        "gini": null,
+        "massa_rendimento_considerada": "4214581350",
         "populacao": 4250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 2975.0,
+        "responsaveis_com_renda": 1416666,
+        "responsaveis_renda": 1416666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 161500000,
+        "pib_mil_reais_exato": "161500000",
         "pib_total_bi": 161.5,
-        "pib_per_capita": 38000.0,
-        "renda_media_domiciliar": 2975.0,
-        "renda_media_responsavel": null,
-        "gini": 0.45
+        "pib_per_capita": 38000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -470,13 +735,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2250000,
+        "gini": null,
+        "massa_rendimento_considerada": "4575000000",
         "populacao": 4500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3050.0,
+        "responsaveis_com_renda": 1500000,
+        "responsaveis_renda": 1500000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 175500000,
+        "pib_mil_reais_exato": "175500000",
         "pib_total_bi": 175.5,
-        "pib_per_capita": 39000.0,
-        "renda_media_domiciliar": 3050.0,
-        "renda_media_responsavel": null,
-        "gini": 0.46
+        "pib_per_capita": 39000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -491,13 +768,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2375000,
+        "gini": null,
+        "massa_rendimento_considerada": "4947915625",
         "populacao": 4750000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3125.0,
+        "responsaveis_com_renda": 1583333,
+        "responsaveis_renda": 1583333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 190000000,
+        "pib_mil_reais_exato": "190000000",
         "pib_total_bi": 190.0,
-        "pib_per_capita": 40000.0,
-        "renda_media_domiciliar": 3125.0,
-        "renda_media_responsavel": null,
-        "gini": 0.47
+        "pib_per_capita": 40000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -512,13 +801,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2500000,
+        "gini": null,
+        "massa_rendimento_considerada": "5333331200",
         "populacao": 5000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3200.0,
+        "responsaveis_com_renda": 1666666,
+        "responsaveis_renda": 1666666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 205000000,
+        "pib_mil_reais_exato": "205000000",
         "pib_total_bi": 205.0,
-        "pib_per_capita": 41000.0,
-        "renda_media_domiciliar": 3200.0,
-        "renda_media_responsavel": null,
-        "gini": 0.4
+        "pib_per_capita": 41000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -533,13 +834,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2625000,
+        "gini": null,
+        "massa_rendimento_considerada": "5731250000",
         "populacao": 5250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3275.0,
+        "responsaveis_com_renda": 1750000,
+        "responsaveis_renda": 1750000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 220500000,
+        "pib_mil_reais_exato": "220500000",
         "pib_total_bi": 220.5,
-        "pib_per_capita": 42000.0,
-        "renda_media_domiciliar": 3275.0,
-        "renda_media_responsavel": null,
-        "gini": 0.41
+        "pib_per_capita": 42000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -554,13 +867,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 2750000,
+        "gini": null,
+        "massa_rendimento_considerada": "6141665550",
         "populacao": 5500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3350.0,
+        "responsaveis_com_renda": 1833333,
+        "responsaveis_renda": 1833333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 236500000,
+        "pib_mil_reais_exato": "236500000",
         "pib_total_bi": 236.5,
-        "pib_per_capita": 43000.0,
-        "renda_media_domiciliar": 3350.0,
-        "renda_media_responsavel": null,
-        "gini": 0.42
+        "pib_per_capita": 43000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -575,13 +900,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
-        "populacao": 5750000,
-        "pib_mil_reais": 253000000,
-        "pib_total_bi": 253.0,
-        "pib_per_capita": 44000.0,
-        "renda_media_domiciliar": 3425.0,
-        "renda_media_responsavel": null,
-        "gini": 0.43
+        "cobertura_renda_proporcao": 0.9922,
+        "domicilios": 2072,
+        "gini": null,
+        "massa_rendimento_considerada": "5861000.0",
+        "pib_mil_reais": 250000,
+        "pib_mil_reais_exato": "250000",
+        "pib_per_capita": 57656.83,
+        "pib_total_bi": 0.25,
+        "populacao": 4336,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3855.92,
+        "responsaveis_com_renda": 1520,
+        "responsaveis_renda": 1532,
+        "setores_por_massa": 2,
+        "setores_por_media": 4,
+        "setores_sem_renda": 4,
+        "setores_sob_sigilo": 4,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 10
       },
       "dados_disponiveis": true,
       "arquivo": "uf/35.json"
@@ -596,13 +933,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3000000,
+        "gini": null,
+        "massa_rendimento_considerada": "7000000000",
         "populacao": 6000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3500.0,
+        "responsaveis_com_renda": 2000000,
+        "responsaveis_renda": 2000000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 270000000,
+        "pib_mil_reais_exato": "270000000",
         "pib_total_bi": 270.0,
-        "pib_per_capita": 45000.0,
-        "renda_media_domiciliar": 3500.0,
-        "renda_media_responsavel": null,
-        "gini": 0.44
+        "pib_per_capita": 45000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -617,13 +966,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
-        "populacao": 6250000,
-        "pib_mil_reais": 287500000,
-        "pib_total_bi": 287.5,
-        "pib_per_capita": 46000.0,
-        "renda_media_domiciliar": 3575.0,
-        "renda_media_responsavel": null,
-        "gini": 0.45
+        "cobertura_renda_proporcao": 0.9922,
+        "domicilios": 2072,
+        "gini": null,
+        "massa_rendimento_considerada": "5861000.0",
+        "pib_mil_reais": 250000,
+        "pib_mil_reais_exato": "250000",
+        "pib_per_capita": 57656.83,
+        "pib_total_bi": 0.25,
+        "populacao": 4336,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3855.92,
+        "responsaveis_com_renda": 1520,
+        "responsaveis_renda": 1532,
+        "setores_por_massa": 2,
+        "setores_por_media": 4,
+        "setores_sem_renda": 4,
+        "setores_sob_sigilo": 4,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 10
       },
       "dados_disponiveis": true,
       "arquivo": "uf/42.json"
@@ -638,13 +999,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3250000,
+        "gini": null,
+        "massa_rendimento_considerada": "7908330900",
         "populacao": 6500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3650.0,
+        "responsaveis_com_renda": 2166666,
+        "responsaveis_renda": 2166666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 305500000,
+        "pib_mil_reais_exato": "305500000",
         "pib_total_bi": 305.5,
-        "pib_per_capita": 47000.0,
-        "renda_media_domiciliar": 3650.0,
-        "renda_media_responsavel": null,
-        "gini": 0.46
+        "pib_per_capita": 47000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -659,13 +1032,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3375000,
+        "gini": null,
+        "massa_rendimento_considerada": "8381250000",
         "populacao": 6750000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3725.0,
+        "responsaveis_com_renda": 2250000,
+        "responsaveis_renda": 2250000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 324000000,
+        "pib_mil_reais_exato": "324000000",
         "pib_total_bi": 324.0,
-        "pib_per_capita": 48000.0,
-        "renda_media_domiciliar": 3725.0,
-        "renda_media_responsavel": null,
-        "gini": 0.47
+        "pib_per_capita": 48000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -680,13 +1065,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3500000,
+        "gini": null,
+        "massa_rendimento_considerada": "8866665400",
         "populacao": 7000000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3800.0,
+        "responsaveis_com_renda": 2333333,
+        "responsaveis_renda": 2333333,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 343000000,
+        "pib_mil_reais_exato": "343000000",
         "pib_total_bi": 343.0,
-        "pib_per_capita": 49000.0,
-        "renda_media_domiciliar": 3800.0,
-        "renda_media_responsavel": null,
-        "gini": 0.4
+        "pib_per_capita": 49000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -701,13 +1098,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3625000,
+        "gini": null,
+        "massa_rendimento_considerada": "9364580750",
         "populacao": 7250000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3875.0,
+        "responsaveis_com_renda": 2416666,
+        "responsaveis_renda": 2416666,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 362500000,
+        "pib_mil_reais_exato": "362500000",
         "pib_total_bi": 362.5,
-        "pib_per_capita": 50000.0,
-        "renda_media_domiciliar": 3875.0,
-        "renda_media_responsavel": null,
-        "gini": 0.41
+        "pib_per_capita": 50000.0
       },
       "dados_disponiveis": false,
       "arquivo": null
@@ -722,13 +1131,25 @@
         "updated_at": "2026-10-25"
       },
       "resumo_uf": {
+        "cobertura_renda_proporcao": 1.0,
+        "domicilios": 3750000,
+        "gini": null,
+        "massa_rendimento_considerada": "9875000000",
         "populacao": 7500000,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3950.0,
+        "responsaveis_com_renda": 2500000,
+        "responsaveis_renda": 2500000,
+        "setores_por_massa": 0,
+        "setores_por_media": 1,
+        "setores_sem_renda": 0,
+        "setores_sob_sigilo": 0,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 1,
         "pib_mil_reais": 382500000,
+        "pib_mil_reais_exato": "382500000",
         "pib_total_bi": 382.5,
-        "pib_per_capita": 51000.0,
-        "renda_media_domiciliar": 3950.0,
-        "renda_media_responsavel": null,
-        "gini": 0.42
+        "pib_per_capita": 51000.0
       },
       "dados_disponiveis": false,
       "arquivo": null

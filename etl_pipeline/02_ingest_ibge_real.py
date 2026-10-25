@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 import csv
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime, timezone
-from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN
+from decimal import Decimal, InvalidOperation
 import json
 from pathlib import Path
 import re
@@ -19,6 +19,7 @@ if __package__ in (None, ""):
 from etl_pipeline.core_contract import (
     normalize_code, validate_code, nonnegative, aggregate_sectors,
     aggregate_summaries, validate_payload, write_payload,
+    validate_sector_invariants, indicators_from_totals,
 )
 from etl_pipeline.reference_data import UFS, REGIOES, common_metadata
 
@@ -46,6 +47,7 @@ class IBGEReleaseManifest:
     decimal_separator: str
     col_map_setor: dict[str, str | None]
     col_map_pib_mun: dict[str, str]
+    parquet_decimal_separator: str = "."
 
     def __post_init__(self):
         for key in ("release_censo", "periodo_censo", "periodo_pib", "universo_renda", "csv_encoding"):
@@ -53,6 +55,8 @@ class IBGEReleaseManifest:
                 raise ValueError(f"Manifesto: {key} deve ser texto preenchido")
         if self.decimal_separator not in {",", "."}:
             raise ValueError("decimal_separator deve ser vírgula ou ponto")
+        if self.parquet_decimal_separator not in {",", "."}:
+            raise ValueError("parquet_decimal_separator deve ser vírgula ou ponto")
         if not isinstance(self.csv_delimiter, str) or len(self.csv_delimiter) != 1:
             raise ValueError("csv_delimiter deve ter um caractere")
         for mapping in (self.col_map_setor, self.col_map_pib_mun):
@@ -135,6 +139,12 @@ def iter_source_rows(path: Path, mapping: dict, manifest: IBGEReleaseManifest):
             kind = schema.field(name).type
             if not (pa.types.is_string(kind) or pa.types.is_large_string(kind)):
                 raise TypeError(f"Parquet: código {name} deve ser string, não {kind}")
+        for field in ("renda_media_responsavel", "massa_rendimento_setor", "pib_mil_reais"):
+            name = mapping.get(field)
+            if name:
+                kind = schema.field(name).type
+                if not (pa.types.is_string(kind) or pa.types.is_large_string(kind) or pa.types.is_decimal(kind)):
+                    raise TypeError(f"Parquet: moeda {name} exige string ou decimal128/256, não {kind}")
         for batch in parquet.iter_batches(batch_size=8192, columns=sorted(required)):
             yield from batch.to_pylist()
         return
@@ -213,6 +223,8 @@ def adapt_sector(raw: dict, manifest: IBGEReleaseManifest) -> dict | None:
         result[field] = value
         if manifest.col_map_setor.get(field):
             statuses.append(status)
+    if len(set(statuses)) > 1:
+        raise ValueError("Status contraditórios entre massa e média mapeadas")
     if weight_status == "sigilo":
         # Se apenas uma medida é mapeada, é ela que deve estar sob sigilo.
         if not statuses or any(s != "sigilo" for s in statuses):
@@ -223,6 +235,7 @@ def adapt_sector(raw: dict, manifest: IBGEReleaseManifest) -> dict | None:
         raise ValueError("responsaveis_renda ausente não pode ser inferido")
     result["status_renda"] = ("divulgada" if "divulgada" in statuses else
                               "sigilo" if "sigilo" in statuses else "ausente")
+    validate_sector_invariants(result)
     return result
 
 
@@ -288,12 +301,17 @@ def ingest(sector_path: Path, gdp_path: Path, manifest: IBGEReleaseManifest,
     date.fromisoformat(updated_at)
     metadata = release_metadata(manifest, updated_at, sector_path, gdp_path)
     gdp_by_mun = {}
+    # Locale textual é independente entre CSV e Parquet.
+    sector_manifest = (replace(manifest, decimal_separator=manifest.parquet_decimal_separator)
+                       if sector_path.suffix.lower() == ".parquet" else manifest)
+    gdp_separator = (manifest.parquet_decimal_separator if gdp_path.suffix.lower() == ".parquet"
+                     else manifest.decimal_separator)
     for row in iter_source_rows(gdp_path, manifest.col_map_pib_mun, manifest):
         code = normalize_code(row[manifest.col_map_pib_mun["cd_mun"]], "cd_mun")
         if code in WATER_BODY_DENYLIST:
             continue
         value, status = parse_ibge_numeric(row[manifest.col_map_pib_mun["pib_mil_reais"]],
-            field="pib_mil_reais", decimal_sep=manifest.decimal_separator)
+            field="pib_mil_reais", decimal_sep=gdp_separator)
         if status != "divulgada" or code in gdp_by_mun:
             raise ValueError(f"PIB ausente ou código duplicado: {code}")
         gdp_by_mun[code] = value
@@ -305,13 +323,11 @@ def ingest(sector_path: Path, gdp_path: Path, manifest: IBGEReleaseManifest,
             db.execute("CREATE INDEX sector_mun ON sectors(mun)")
             for number, row in enumerate(iter_source_rows(sector_path, manifest.col_map_setor, manifest), 2):
                 try:
-                    sector = adapt_sector(row, manifest)
+                    sector = adapt_sector(row, sector_manifest)
                     if sector is None:
                         continue
                     if sector["cd_mun"][:2] not in uf_registry:
                         raise ValueError("UF desconhecida")
-                    # Validação completa antes de qualquer escrita de saída.
-                    aggregate_sectors([sector], cd_mun=sector["cd_mun"], id_agregacao="validacao", nm_bairro="validação")
                     db.execute("INSERT INTO sectors VALUES (?, ?, ?)", (
                         sector["cd_setor"], sector["cd_mun"], json.dumps(sector, default=str)))
                 except (ValueError, TypeError, sqlite3.IntegrityError) as exc:
@@ -339,12 +355,7 @@ def ingest(sector_path: Path, gdp_path: Path, manifest: IBGEReleaseManifest,
                         raise ValueError(f"Reconciliação falhou: {code}/{field}")
                 if sum((Decimal(b["massa_rendimento_considerada"]) for b in bairros), Decimal(0)) != Decimal(totals["massa_rendimento_considerada"]):
                     raise ValueError(f"Reconciliação de massa falhou: {code}")
-                indicators = {k: v for k, v in totals.items() if k not in {
-                    "cd_bairro", "id_agregacao", "nm_bairro", "origem_malha", "cd_setores", "metodo_agregacao", "gini_estimado"}}
-                gdp = gdp_by_mun[code]
-                indicators.update(pib_mil_reais=int(gdp) if gdp == gdp.to_integral_value() else float(gdp),
-                    pib_mil_reais_exato=format(gdp, "f"), pib_total_bi=float(gdp / 1_000_000),
-                    pib_per_capita=float((gdp * 1000 / totals["populacao"]).quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)) if totals["populacao"] else None)
+                indicators = indicators_from_totals(totals, gdp_by_mun[code])
                 names = {s["nm_mun"] for s in sectors if s["nm_mun"]}
                 if len(names) > 1:
                     raise ValueError(f"Nomes municipais conflitantes: {code}")

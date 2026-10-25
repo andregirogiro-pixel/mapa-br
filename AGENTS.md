@@ -17,7 +17,7 @@
   Não baixar dados nem executar pipeline durante importação de módulos.
 - Gerar: `python3 etl_pipeline/01_build_uf_base.py --date 2026-10-25`.
   Testar demo: `python3 -m unittest discover -s etl_pipeline/tests -p test_build_uf_base.py -v`.
-  O gerador e seus 34 testes usam stdlib. Para a suíte completa com Parquet:
+  O gerador e seus testes de fixtures usam stdlib. Para a suíte completa com Parquet:
   `.venv/bin/python -m unittest discover -s etl_pipeline/tests -v`.
   `--output-dir` escolhe destino; o adaptador real usa `data/processed_real`
   por padrão, separado das fixtures e ignorado pelo Git.
@@ -63,11 +63,17 @@
   existem, exigir abs(massa - média * peso) <= 0.05 * peso, em Decimal.
   Essa tolerância é política do contrato demo, não certificação universal IBGE.
   Coerência numérica não substitui verificação semântica no dicionário.
+  Não ampliar automaticamente a tolerância: outra política requer evidência da
+  release e testes próprios. PIB total permanece não negativo; componentes
+  setoriais eventualmente assinados exigem indicadores e domínios separados.
 - Ausência é excluída do numerador E do denominador válido, mantendo totais
   físicos e universo total. Renda zero é válida. Nenhuma renda válida => null;
   renda/massa positiva com universo zero => erro. Gini sem microdistribuição
   fica null. Nunca calcular Gini pela média de Ginis.
 - status_renda: divulgada, sigilo ou ausente, coerente com massa/média.
+  Se ambas as medidas estiverem mapeadas, seus status devem ser iguais, inclusive
+  para renda zero. Para uma fonte com apenas uma medida, omitir a outra do
+  manifesto; não aceitar divulgação misturada com sigilo/ausência na mesma linha.
   O adaptador deve preservar o marcador de sigilo da fonte; None sozinho não
   comprova sigilo. Sentinelas não normalizadas, NaN e Infinity são rejeitados.
 - cobertura_renda_proporcao = responsáveis com renda / universo total de renda,
@@ -90,14 +96,28 @@
 ## Contrato JSON 2.0 — quebra deliberada do 1.1
 
 UTF-8, sem NaN/Infinity. Campos indisponíveis são null, nunca zero inventado.
-Indicadores macro com mesmos nomes em país, região, UF e município:
-`populacao`, `pib_mil_reais`, `pib_total_bi`, `pib_per_capita`,
-`renda_media_domiciliar`, `renda_media_responsavel`, `gini`.
-Renda domiciliar e do responsável são conceitos diferentes e nunca aliases.
-Não usar mais renda_media. País/região não agregam renda sem os pesos corretos.
-Bairros expõem esses mesmos campos, com PIB, renda domiciliar e Gini nulos
-quando não disponíveis; renda do responsável vem dos setores.
-Amostras municipais/bairros são parciais e não reconciliam com totais estaduais.
+Indicadores macro têm exatamente as 19 chaves de `INDICATOR_KEYS` em
+core_contract.py, tanto em 01 quanto 02, em município, UF, região e país:
+
+- populacao, domicilios, responsaveis_renda, responsaveis_com_renda;
+- pib_mil_reais, pib_mil_reais_exato, pib_total_bi, pib_per_capita;
+- renda_media_domiciliar, renda_media_responsavel, gini;
+- total_setores, setores_sem_renda, setores_sob_sigilo, setores_por_massa,
+  setores_por_media, setores_universo_renda_suprimido;
+- massa_rendimento_considerada, cobertura_renda_proporcao.
+
+`indicators_from_totals` é a projeção única dos totais + PIB. Nunca criar um
+subconjunto de sete campos para as fixtures. validate_payload aplica
+validate_indicators em todos esses blocos, inclusive nos resumos do índice.
+Campos extras/ausentes são erros; inexistência de cobertura territorial no 02
+continua representada pelo bloco inteiro null, não por indicadores inventados.
+Renda domiciliar e renda do responsável não são aliases. As fixtures não
+inventam renda domiciliar ou Gini; deixam null quando não há distribuição.
+Municípios demonstrativos e UFs SP/SC agora reconciliam com seus setores/bairros;
+resumos das outras 25 UFs derivam de setores internos totalmente sintéticos,
+com identificadores de formato não exportados e sem detalhe municipal. Não
+interpretar esses setores como registros oficiais. País/regiões somam os
+resumos disponíveis pelo mesmo motor, incluindo renda parcial e cobertura.
 
 Carga progressiva, caminhos canônicos (não usar 42_SC.json):
 
@@ -126,7 +146,7 @@ exatamente estas chaves:
   responsaveis_com_renda, setores_sem_renda, setores_sob_sigilo,
   cobertura_renda_proporcao, setores_universo_renda_suprimido,
   massa_rendimento_considerada (texto decimal exato da soma parcial de renda).
-- Indicadores: pib_mil_reais, pib_total_bi, pib_per_capita,
+- Indicadores: pib_mil_reais, pib_mil_reais_exato, pib_total_bi, pib_per_capita,
   renda_media_domiciliar, renda_media_responsavel, gini, gini_estimado.
 
 Métodos: massa_por_responsaveis_validos, media_ponderada_responsaveis_validos,
@@ -135,6 +155,9 @@ Não atribuir o mesmo setor a múltiplos bairros do município.
 
 ## Escrita e testes
 
+validate_sector_invariants é a validação leve por linha: física, renda, status e
+universo suprimido. É chamada pelo adaptador e por aggregate_sectors; nunca
+chamar aggregate_sectors([sector]) só para validar uma linha na carga SQLite.
 validate_payload verifica estrutura, estados contraditórios, vínculos, códigos
 normalizados e números finitos, sem serializar. write_payload usa json.dump uma
 única vez por saída e troca atômica por arquivo, com temporário exclusivo.
@@ -149,7 +172,11 @@ Não adicionar frontend, API, geometria ou ingestão real sem tarefa específica
   criar uma release. template.json contém placeholders, não colunas verificadas.
 - CSV: DictReader sem inferência. Parquet: inspecionar schema antes de qualquer
   linha, recusando códigos numéricos mesmo em arquivos vazios. Nomes físicos
-  de colunas vêm exclusivamente dos mapeamentos do manifesto.
+  de colunas vêm exclusivamente dos mapeamentos do manifesto. Moeda (renda,
+  massa e PIB) em Parquet exige string/large_string ou decimal128/256. Float,
+  inclusive NaN, é recusado pelo schema, sem arredondamento corretivo. Strings
+  Parquet usam parquet_decimal_separator (padrão ponto), independente do locale
+  CSV. Null Arrow continua ausência; não inferir sigilo de null/NaN.
 - parse_ibge_numeric distingue divulgação, sigilo e ausência, com Decimal;
   não converter X para zero de renda. Demografia/denominador ausentes abortam,
   salvo a exceção estrita do denominador sob sigilo descrita acima.

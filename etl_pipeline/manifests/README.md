@@ -29,9 +29,19 @@ join espacial ou consolidação automática entre arquivos brutos neste adaptado
 - CSV usa DictReader sem inferência. Parquet usa pyarrow e valida o schema de
   todos os códigos mapeados e colunas CD_* antes da primeira linha, até em
   arquivos vazios. Códigos devem ser string/large_string, nunca int/float.
+- Moeda no Parquet (média, massa e PIB) exige string/large_string ou
+  decimal128/decimal256. Float64/32, inclusive NaN, é rejeitado antes da primeira
+  linha; não se arredonda silenciosamente uma representação binária. Converta
+  a fonte de forma documentada antes de executar. Null Arrow vira ausência.
+- Strings de moeda no Parquet usam `parquet_decimal_separator` (padrão ponto),
+  independente de `decimal_separator` do CSV. Para Parquet textual com vírgula,
+  declare o override explicitamente. Números Decimal nativos não têm locale.
 - Ponto de milhar é proibido no locale vírgula. Os estados divulgada/sigilo/
   ausente são preservados; a renda é Decimal, sem conversão intermediária em float.
   Para números nativos de Parquet, o locale textual não se aplica.
+- Se média e massa estão ambas mapeadas, seus status devem ser idênticos na
+  mesma linha. Divulgação vs sigilo/ausência é erro, mesmo para renda zero.
+  Se a publicação fornece somente uma medida, mapeie somente essa medida.
 - População/domicílios ausentes abortam. Denominador ausente também aborta.
   Denominador X vira peso interno zero APENAS se todas as medidas de renda
   mapeadas forem X; conta universo suprimido e deixa a cobertura null, em vez
@@ -73,3 +83,14 @@ A média municipal é calculada dos setores, nunca de médias de bairros arredon
 PIB per capita é derivado com população do Censo; metadados registram ambos os
 períodos quando o ano do PIB difere do ano populacional. Não é automaticamente
 o indicador per capita oficial da tabela original.
+
+Os indicadores macro publicados (município, UF, região e país) obedecem às
+mesmas 19 chaves de INDICATOR_KEYS, também presentes nas fixtures. O validador
+rejeita campos faltantes e extras. A validação por linha é feita por
+validate_sector_invariants, sem criar um agregado de bairro temporário no staging.
+
+A tolerância massa/média de R$ 0,05 permanece uma política estrita. Não ampliar
+por suposição sobre BME, imputação ou arredondamento; uma mudança requer evidência
+na publicação, unidades compatíveis e testes da nova política. O campo aqui é
+PIB total, não um componente de VAB/impostos líquidos; componentes assinados
+precisariam de métricas/domínios separados.

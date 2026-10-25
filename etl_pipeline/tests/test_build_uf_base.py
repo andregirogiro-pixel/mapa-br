@@ -2,7 +2,10 @@
 
 import importlib.util
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -58,6 +61,17 @@ class BuildTests(unittest.TestCase):
         before = {p: p.read_bytes() for p in self.root.rglob("*.json")}
         pipeline.build(self.root, "2026-10-25")
         self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_repeatability_between_processes_with_different_hash_seeds(self):
+        for seed in ("1", "2"):
+            destination = self.root / seed
+            result = subprocess.run([sys.executable, str(SCRIPT), "--date", "2026-10-25",
+                "--output-dir", str(destination)], capture_output=True, text=True,
+                env=os.environ | {"PYTHONHASHSEED": seed})
+            self.assertEqual(result.returncode, 0, result.stderr)
+        first = {p.relative_to(self.root / "1"): p.read_bytes() for p in (self.root / "1").rglob("*.json")}
+        second = {p.relative_to(self.root / "2"): p.read_bytes() for p in (self.root / "2").rglob("*.json")}
+        self.assertEqual(first, second)
 
     def test_explicit_provenance(self):
         for path in self.root.rglob("*.json"):

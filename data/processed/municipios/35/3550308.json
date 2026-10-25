@@ -79,6 +79,31 @@
         "unidade": "índice [0,1]",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_massa": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_media": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sem_renda": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sob_sigilo": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "total_setores": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
       }
     },
     "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
@@ -100,13 +125,25 @@
     "cd_mun": "3550308",
     "nm_mun": "São Paulo",
     "indicadores": {
-      "populacao": 100000,
-      "pib_mil_reais": 4000000,
-      "pib_total_bi": 4.0,
-      "pib_per_capita": 40000.0,
-      "renda_media_domiciliar": 3500.0,
-      "renda_media_responsavel": null,
-      "gini": 0.49
+      "cobertura_renda_proporcao": 0.9921,
+      "domicilios": 1021,
+      "gini": null,
+      "massa_rendimento_considerada": "2870000.0",
+      "populacao": 2118,
+      "renda_media_domiciliar": null,
+      "renda_media_responsavel": 3826.67,
+      "responsaveis_com_renda": 750,
+      "responsaveis_renda": 756,
+      "setores_por_massa": 1,
+      "setores_por_media": 2,
+      "setores_sem_renda": 2,
+      "setores_sob_sigilo": 2,
+      "setores_universo_renda_suprimido": 0,
+      "total_setores": 5,
+      "pib_mil_reais": 100000,
+      "pib_mil_reais_exato": "100000",
+      "pib_total_bi": 0.1,
+      "pib_per_capita": 47214.35
     },
     "bairros": [
       {
@@ -122,6 +159,7 @@
         "metodo_agregacao": "media_ponderada_responsaveis_validos",
         "populacao": 1206,
         "pib_mil_reais": null,
+        "pib_mil_reais_exato": null,
         "pib_total_bi": null,
         "pib_per_capita": null,
         "renda_media_domiciliar": null,
@@ -153,6 +191,7 @@
         "metodo_agregacao": "massa_e_media_ponderada_responsaveis_validos",
         "populacao": 912,
         "pib_mil_reais": null,
+        "pib_mil_reais_exato": null,
         "pib_total_bi": null,
         "pib_per_capita": null,
         "renda_media_domiciliar": null,

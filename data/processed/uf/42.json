@@ -79,6 +79,31 @@
         "unidade": "índice [0,1]",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_massa": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_por_media": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sem_renda": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "setores_sob_sigilo": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "total_setores": {
+        "unidade": "setores",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
       }
     },
     "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
@@ -96,26 +121,50 @@
     "cobertura_municipios": "amostra_simulada"
   },
   "resumo_uf": {
-    "populacao": 6250000,
-    "pib_mil_reais": 287500000,
-    "pib_total_bi": 287.5,
-    "pib_per_capita": 46000.0,
-    "renda_media_domiciliar": 3575.0,
-    "renda_media_responsavel": null,
-    "gini": 0.45
+    "cobertura_renda_proporcao": 0.9922,
+    "domicilios": 2072,
+    "gini": null,
+    "massa_rendimento_considerada": "5861000.0",
+    "pib_mil_reais": 250000,
+    "pib_mil_reais_exato": "250000",
+    "pib_per_capita": 57656.83,
+    "pib_total_bi": 0.25,
+    "populacao": 4336,
+    "renda_media_domiciliar": null,
+    "renda_media_responsavel": 3855.92,
+    "responsaveis_com_renda": 1520,
+    "responsaveis_renda": 1532,
+    "setores_por_massa": 2,
+    "setores_por_media": 4,
+    "setores_sem_renda": 4,
+    "setores_sob_sigilo": 4,
+    "setores_universo_renda_suprimido": 0,
+    "total_setores": 10
   },
   "municipios_resumo": [
     {
       "cd_mun": "4205407",
       "nm_mun": "Florianópolis",
       "indicadores": {
-        "populacao": 100000,
-        "pib_mil_reais": 4000000,
-        "pib_total_bi": 4.0,
-        "pib_per_capita": 40000.0,
-        "renda_media_domiciliar": 3500.0,
-        "renda_media_responsavel": null,
-        "gini": 0.49
+        "cobertura_renda_proporcao": 0.9921,
+        "domicilios": 1021,
+        "gini": null,
+        "massa_rendimento_considerada": "2870000.0",
+        "populacao": 2118,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3826.67,
+        "responsaveis_com_renda": 750,
+        "responsaveis_renda": 756,
+        "setores_por_massa": 1,
+        "setores_por_media": 2,
+        "setores_sem_renda": 2,
+        "setores_sob_sigilo": 2,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 5,
+        "pib_mil_reais": 100000,
+        "pib_mil_reais_exato": "100000",
+        "pib_total_bi": 0.1,
+        "pib_per_capita": 47214.35
       },
       "total_bairros": 2,
       "total_setores": 5,
@@ -125,13 +174,25 @@
       "cd_mun": "4209102",
       "nm_mun": "Joinville",
       "indicadores": {
-        "populacao": 150000,
-        "pib_mil_reais": 6300000,
-        "pib_total_bi": 6.3,
-        "pib_per_capita": 42000.0,
-        "renda_media_domiciliar": 3700.0,
-        "renda_media_responsavel": null,
-        "gini": 0.49
+        "cobertura_renda_proporcao": 0.9923,
+        "domicilios": 1051,
+        "gini": null,
+        "massa_rendimento_considerada": "2991000.0",
+        "populacao": 2218,
+        "renda_media_domiciliar": null,
+        "renda_media_responsavel": 3884.42,
+        "responsaveis_com_renda": 770,
+        "responsaveis_renda": 776,
+        "setores_por_massa": 1,
+        "setores_por_media": 2,
+        "setores_sem_renda": 2,
+        "setores_sob_sigilo": 2,
+        "setores_universo_renda_suprimido": 0,
+        "total_setores": 5,
+        "pib_mil_reais": 150000,
+        "pib_mil_reais_exato": "150000",
+        "pib_total_bi": 0.15,
+        "pib_per_capita": 67628.49
       },
       "total_bairros": 2,
       "total_setores": 5,

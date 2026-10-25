@@ -6,6 +6,7 @@
   "csv_encoding": "utf-8-sig",
   "csv_delimiter": ";",
   "decimal_separator": ",",
+  "parquet_decimal_separator": ".",
   "col_map_setor": {
     "cd_setor": "COLUNA_SETOR",
     "cd_mun": "COLUNA_MUNICIPIO",
