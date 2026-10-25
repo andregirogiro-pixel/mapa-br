@@ -1,0 +1,635 @@
+{
+  "metadata": {
+    "schema_version": "1.0",
+    "updated_at": "2026-10-25",
+    "tipo_dados": "simulados",
+    "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
+    "indicadores": {
+      "populacao": {
+        "unidade": "pessoas",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "domicilios": {
+        "unidade": "domicílios",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_total_bi": {
+        "unidade": "bilhões de BRL/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_per_capita": {
+        "unidade": "BRL/pessoa/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_domiciliar": {
+        "unidade": "BRL/domicílio/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media": {
+        "unidade": "BRL/domicílio/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_responsavel": {
+        "unidade": "BRL/responsável/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini_estimado": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      }
+    },
+    "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado."
+  },
+  "resumo_brasil": {
+    "populacao": 114750000,
+    "pib_total_bi": 4770.0,
+    "pib_per_capita": 41568.63,
+    "renda_media_domiciliar": null,
+    "gini": null
+  },
+  "regioes": [
+    {
+      "cd_regiao": "1",
+      "nm_regiao": "Norte",
+      "indicadores": {
+        "populacao": 12250000,
+        "pib_total_bi": 350.0,
+        "pib_per_capita": 28571.43,
+        "renda_media_domiciliar": null,
+        "gini": null
+      }
+    },
+    {
+      "cd_regiao": "2",
+      "nm_regiao": "Nordeste",
+      "indicadores": {
+        "populacao": 33750000,
+        "pib_total_bi": 1230.0,
+        "pib_per_capita": 36444.44,
+        "renda_media_domiciliar": null,
+        "gini": null
+      }
+    },
+    {
+      "cd_regiao": "3",
+      "nm_regiao": "Sudeste",
+      "indicadores": {
+        "populacao": 21500000,
+        "pib_total_bi": 915.0,
+        "pib_per_capita": 42558.14,
+        "renda_media_domiciliar": null,
+        "gini": null
+      }
+    },
+    {
+      "cd_regiao": "4",
+      "nm_regiao": "Sul",
+      "indicadores": {
+        "populacao": 18750000,
+        "pib_total_bi": 863.0,
+        "pib_per_capita": 46026.67,
+        "renda_media_domiciliar": null,
+        "gini": null
+      }
+    },
+    {
+      "cd_regiao": "5",
+      "nm_regiao": "Centro-Oeste",
+      "indicadores": {
+        "populacao": 28500000,
+        "pib_total_bi": 1412.0,
+        "pib_per_capita": 49543.86,
+        "renda_media_domiciliar": null,
+        "gini": null
+      }
+    }
+  ],
+  "ufs": [
+    {
+      "metadata": {
+        "cd_uf": "11",
+        "sigla_uf": "RO",
+        "nm_uf": "Rondônia",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 1000000,
+        "pib_total_bi": 25.0,
+        "pib_per_capita": 25000.0,
+        "renda_media_domiciliar": 2000.0,
+        "gini": 0.4
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "12",
+        "sigla_uf": "AC",
+        "nm_uf": "Acre",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 1250000,
+        "pib_total_bi": 32.5,
+        "pib_per_capita": 26000.0,
+        "renda_media_domiciliar": 2075.0,
+        "gini": 0.41
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "13",
+        "sigla_uf": "AM",
+        "nm_uf": "Amazonas",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 1500000,
+        "pib_total_bi": 40.5,
+        "pib_per_capita": 27000.0,
+        "renda_media_domiciliar": 2150.0,
+        "gini": 0.42
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "14",
+        "sigla_uf": "RR",
+        "nm_uf": "Roraima",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 1750000,
+        "pib_total_bi": 49.0,
+        "pib_per_capita": 28000.0,
+        "renda_media_domiciliar": 2225.0,
+        "gini": 0.43
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "15",
+        "sigla_uf": "PA",
+        "nm_uf": "Pará",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 2000000,
+        "pib_total_bi": 58.0,
+        "pib_per_capita": 29000.0,
+        "renda_media_domiciliar": 2300.0,
+        "gini": 0.44
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "16",
+        "sigla_uf": "AP",
+        "nm_uf": "Amapá",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 2250000,
+        "pib_total_bi": 67.5,
+        "pib_per_capita": 30000.0,
+        "renda_media_domiciliar": 2375.0,
+        "gini": 0.45
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "17",
+        "sigla_uf": "TO",
+        "nm_uf": "Tocantins",
+        "cd_regiao": "1",
+        "nm_regiao": "Norte",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 2500000,
+        "pib_total_bi": 77.5,
+        "pib_per_capita": 31000.0,
+        "renda_media_domiciliar": 2450.0,
+        "gini": 0.46
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "21",
+        "sigla_uf": "MA",
+        "nm_uf": "Maranhão",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 2750000,
+        "pib_total_bi": 88.0,
+        "pib_per_capita": 32000.0,
+        "renda_media_domiciliar": 2525.0,
+        "gini": 0.47
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "22",
+        "sigla_uf": "PI",
+        "nm_uf": "Piauí",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 3000000,
+        "pib_total_bi": 99.0,
+        "pib_per_capita": 33000.0,
+        "renda_media_domiciliar": 2600.0,
+        "gini": 0.4
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "23",
+        "sigla_uf": "CE",
+        "nm_uf": "Ceará",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 3250000,
+        "pib_total_bi": 110.5,
+        "pib_per_capita": 34000.0,
+        "renda_media_domiciliar": 2675.0,
+        "gini": 0.41
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "24",
+        "sigla_uf": "RN",
+        "nm_uf": "Rio Grande do Norte",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 3500000,
+        "pib_total_bi": 122.5,
+        "pib_per_capita": 35000.0,
+        "renda_media_domiciliar": 2750.0,
+        "gini": 0.42
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "25",
+        "sigla_uf": "PB",
+        "nm_uf": "Paraíba",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 3750000,
+        "pib_total_bi": 135.0,
+        "pib_per_capita": 36000.0,
+        "renda_media_domiciliar": 2825.0,
+        "gini": 0.43
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "26",
+        "sigla_uf": "PE",
+        "nm_uf": "Pernambuco",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 4000000,
+        "pib_total_bi": 148.0,
+        "pib_per_capita": 37000.0,
+        "renda_media_domiciliar": 2900.0,
+        "gini": 0.44
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "27",
+        "sigla_uf": "AL",
+        "nm_uf": "Alagoas",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 4250000,
+        "pib_total_bi": 161.5,
+        "pib_per_capita": 38000.0,
+        "renda_media_domiciliar": 2975.0,
+        "gini": 0.45
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "28",
+        "sigla_uf": "SE",
+        "nm_uf": "Sergipe",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 4500000,
+        "pib_total_bi": 175.5,
+        "pib_per_capita": 39000.0,
+        "renda_media_domiciliar": 3050.0,
+        "gini": 0.46
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "29",
+        "sigla_uf": "BA",
+        "nm_uf": "Bahia",
+        "cd_regiao": "2",
+        "nm_regiao": "Nordeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 4750000,
+        "pib_total_bi": 190.0,
+        "pib_per_capita": 40000.0,
+        "renda_media_domiciliar": 3125.0,
+        "gini": 0.47
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "31",
+        "sigla_uf": "MG",
+        "nm_uf": "Minas Gerais",
+        "cd_regiao": "3",
+        "nm_regiao": "Sudeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 5000000,
+        "pib_total_bi": 205.0,
+        "pib_per_capita": 41000.0,
+        "renda_media_domiciliar": 3200.0,
+        "gini": 0.4
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "32",
+        "sigla_uf": "ES",
+        "nm_uf": "Espírito Santo",
+        "cd_regiao": "3",
+        "nm_regiao": "Sudeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 5250000,
+        "pib_total_bi": 220.5,
+        "pib_per_capita": 42000.0,
+        "renda_media_domiciliar": 3275.0,
+        "gini": 0.41
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "33",
+        "sigla_uf": "RJ",
+        "nm_uf": "Rio de Janeiro",
+        "cd_regiao": "3",
+        "nm_regiao": "Sudeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 5500000,
+        "pib_total_bi": 236.5,
+        "pib_per_capita": 43000.0,
+        "renda_media_domiciliar": 3350.0,
+        "gini": 0.42
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "35",
+        "sigla_uf": "SP",
+        "nm_uf": "São Paulo",
+        "cd_regiao": "3",
+        "nm_regiao": "Sudeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 5750000,
+        "pib_total_bi": 253.0,
+        "pib_per_capita": 44000.0,
+        "renda_media_domiciliar": 3425.0,
+        "gini": 0.43
+      },
+      "dados_disponiveis": true,
+      "arquivo": "uf/35.json"
+    },
+    {
+      "metadata": {
+        "cd_uf": "41",
+        "sigla_uf": "PR",
+        "nm_uf": "Paraná",
+        "cd_regiao": "4",
+        "nm_regiao": "Sul",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 6000000,
+        "pib_total_bi": 270.0,
+        "pib_per_capita": 45000.0,
+        "renda_media_domiciliar": 3500.0,
+        "gini": 0.44
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "42",
+        "sigla_uf": "SC",
+        "nm_uf": "Santa Catarina",
+        "cd_regiao": "4",
+        "nm_regiao": "Sul",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 6250000,
+        "pib_total_bi": 287.5,
+        "pib_per_capita": 46000.0,
+        "renda_media_domiciliar": 3575.0,
+        "gini": 0.45
+      },
+      "dados_disponiveis": true,
+      "arquivo": "uf/42.json"
+    },
+    {
+      "metadata": {
+        "cd_uf": "43",
+        "sigla_uf": "RS",
+        "nm_uf": "Rio Grande do Sul",
+        "cd_regiao": "4",
+        "nm_regiao": "Sul",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 6500000,
+        "pib_total_bi": 305.5,
+        "pib_per_capita": 47000.0,
+        "renda_media_domiciliar": 3650.0,
+        "gini": 0.46
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "50",
+        "sigla_uf": "MS",
+        "nm_uf": "Mato Grosso do Sul",
+        "cd_regiao": "5",
+        "nm_regiao": "Centro-Oeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 6750000,
+        "pib_total_bi": 324.0,
+        "pib_per_capita": 48000.0,
+        "renda_media_domiciliar": 3725.0,
+        "gini": 0.47
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "51",
+        "sigla_uf": "MT",
+        "nm_uf": "Mato Grosso",
+        "cd_regiao": "5",
+        "nm_regiao": "Centro-Oeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 7000000,
+        "pib_total_bi": 343.0,
+        "pib_per_capita": 49000.0,
+        "renda_media_domiciliar": 3800.0,
+        "gini": 0.4
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "52",
+        "sigla_uf": "GO",
+        "nm_uf": "Goiás",
+        "cd_regiao": "5",
+        "nm_regiao": "Centro-Oeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 7250000,
+        "pib_total_bi": 362.5,
+        "pib_per_capita": 50000.0,
+        "renda_media_domiciliar": 3875.0,
+        "gini": 0.41
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    },
+    {
+      "metadata": {
+        "cd_uf": "53",
+        "sigla_uf": "DF",
+        "nm_uf": "Distrito Federal",
+        "cd_regiao": "5",
+        "nm_regiao": "Centro-Oeste",
+        "updated_at": "2026-10-25"
+      },
+      "resumo_uf": {
+        "populacao": 7500000,
+        "pib_total_bi": 382.5,
+        "pib_per_capita": 51000.0,
+        "renda_media_domiciliar": 3950.0,
+        "gini": 0.42
+      },
+      "dados_disponiveis": false,
+      "arquivo": null
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "metadata": {
+    "schema_version": "1.0",
+    "updated_at": "2026-10-25",
+    "tipo_dados": "simulados",
+    "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
+    "indicadores": {
+      "populacao": {
+        "unidade": "pessoas",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "domicilios": {
+        "unidade": "domicílios",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_total_bi": {
+        "unidade": "bilhões de BRL/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "pib_per_capita": {
+        "unidade": "BRL/pessoa/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_domiciliar": {
+        "unidade": "BRL/domicílio/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media": {
+        "unidade": "BRL/domicílio/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "renda_media_responsavel": {
+        "unidade": "BRL/responsável/mês",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "gini_estimado": {
+        "unidade": "índice [0,1]",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      }
+    },
+    "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
+    "cd_uf": "42",
+    "sigla_uf": "SC",
+    "nm_uf": "Santa Catarina",
+    "cd_regiao": "4",
+    "nm_regiao": "Sul",
+    "cobertura_municipios": "amostra_simulada",
+    "cobertura_bairros": "amostra_simulada"
+  },
+  "resumo_uf": {
+    "populacao": 6250000,
+    "pib_total_bi": 287.5,
+    "pib_per_capita": 46000.0,
+    "renda_media_domiciliar": 3575.0,
+    "gini": 0.45
+  },
+  "municipios": [
+    {
+      "cd_mun": "4205407",
+      "nm_mun": "Florianópolis",
+      "indicadores": {
+        "populacao": 100000,
+        "pib_per_capita": 40000.0,
+        "renda_media": 3500.0,
+        "gini": 0.49
+      },
+      "bairros": [
+        {
+          "cd_bairro": "4205407001",
+          "nm_bairro": "Centro (demonstração)",
+          "origem_malha": "ibge_bairro_oficial",
+          "populacao": 1200,
+          "domicilios": 400,
+          "renda_media_responsavel": 4200.0,
+          "gini_estimado": 0.46
+        },
+        {
+          "cd_bairro": null,
+          "id_agregacao": "demo:4205407:grupo-01",
+          "nm_bairro": "Área sem bairro oficial (demonstração)",
+          "origem_malha": "setores_agregados",
+          "cd_setores": [
+            "420540700000001",
+            "420540700000002"
+          ],
+          "metodo_agregacao": "media_ponderada_domicilios",
+          "populacao": 900,
+          "domicilios": 400,
+          "renda_media_responsavel": 3500.0,
+          "gini_estimado": null
+        }
+      ]
+    },
+    {
+      "cd_mun": "4209102",
+      "nm_mun": "Joinville",
+      "indicadores": {
+        "populacao": 150000,
+        "pib_per_capita": 42000.0,
+        "renda_media": 3700.0,
+        "gini": 0.49
+      },
+      "bairros": [
+        {
+          "cd_bairro": "4209102001",
+          "nm_bairro": "Centro (demonstração)",
+          "origem_malha": "ibge_bairro_oficial",
+          "populacao": 1300,
+          "domicilios": 430,
+          "renda_media_responsavel": 4300.0,
+          "gini_estimado": 0.46
+        },
+        {
+          "cd_bairro": null,
+          "id_agregacao": "demo:4209102:grupo-01",
+          "nm_bairro": "Área sem bairro oficial (demonstração)",
+          "origem_malha": "setores_agregados",
+          "cd_setores": [
+            "420910200000001",
+            "420910200000002"
+          ],
+          "metodo_agregacao": "media_ponderada_domicilios",
+          "populacao": 900,
+          "domicilios": 400,
+          "renda_media_responsavel": 3500.0,
+          "gini_estimado": null
+        }
+      ]
+    }
+  ]
+}

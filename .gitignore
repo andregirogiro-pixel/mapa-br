@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Raw/heavy geospatial and tabular data (including shapefile sidecars)
+data/raw/*
+!data/raw/.gitkeep
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.gpkg
+*.geotiff
+*.tif
+*.tiff
+*.parquet
+*.csv
+*.zip
+*.7z
+*.gz
+
+# Local tools and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+*.tmp
