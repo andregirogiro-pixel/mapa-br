@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "schema_version": "1.0",
+    "schema_version": "1.1",
     "updated_at": "2026-10-25",
     "tipo_dados": "simulados",
     "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
@@ -15,13 +15,33 @@
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
+      "pib_mil_reais": {
+        "unidade": "mil BRL/ano, preços correntes",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
       "pib_total_bi": {
-        "unidade": "bilhões de BRL/ano",
+        "unidade": "bilhões de BRL/ano (derivado)",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
       "pib_per_capita": {
         "unidade": "BRL/pessoa/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_renda": {
+        "unidade": "pessoas no universo da variável de renda",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_com_renda": {
+        "unidade": "pessoas em setores com massa ou média divulgada",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "cobertura_renda_proporcao": {
+        "unidade": "proporção [0,1] do universo de renda coberto",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
@@ -51,10 +71,15 @@
         "fonte": "fixture sintética; sem período estatístico real"
       }
     },
-    "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado."
+    "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
+    "perfil_codigo_setor": "15_digitos_sufixo_maiusculo_opcional",
+    "release_censo": null,
+    "universo_renda": "fixture: responsáveis DPPO, inclusive sem rendimento",
+    "mapeamento_variaveis_censo": null
   },
   "resumo_brasil": {
     "populacao": 114750000,
+    "pib_mil_reais": 4770000000,
     "pib_total_bi": 4770.0,
     "pib_per_capita": 41568.63,
     "renda_media_domiciliar": null,
@@ -66,6 +91,7 @@
       "nm_regiao": "Norte",
       "indicadores": {
         "populacao": 12250000,
+        "pib_mil_reais": 350000000,
         "pib_total_bi": 350.0,
         "pib_per_capita": 28571.43,
         "renda_media_domiciliar": null,
@@ -77,6 +103,7 @@
       "nm_regiao": "Nordeste",
       "indicadores": {
         "populacao": 33750000,
+        "pib_mil_reais": 1230000000,
         "pib_total_bi": 1230.0,
         "pib_per_capita": 36444.44,
         "renda_media_domiciliar": null,
@@ -88,6 +115,7 @@
       "nm_regiao": "Sudeste",
       "indicadores": {
         "populacao": 21500000,
+        "pib_mil_reais": 915000000,
         "pib_total_bi": 915.0,
         "pib_per_capita": 42558.14,
         "renda_media_domiciliar": null,
@@ -99,6 +127,7 @@
       "nm_regiao": "Sul",
       "indicadores": {
         "populacao": 18750000,
+        "pib_mil_reais": 863000000,
         "pib_total_bi": 863.0,
         "pib_per_capita": 46026.67,
         "renda_media_domiciliar": null,
@@ -110,6 +139,7 @@
       "nm_regiao": "Centro-Oeste",
       "indicadores": {
         "populacao": 28500000,
+        "pib_mil_reais": 1412000000,
         "pib_total_bi": 1412.0,
         "pib_per_capita": 49543.86,
         "renda_media_domiciliar": null,
@@ -129,6 +159,7 @@
       },
       "resumo_uf": {
         "populacao": 1000000,
+        "pib_mil_reais": 25000000,
         "pib_total_bi": 25.0,
         "pib_per_capita": 25000.0,
         "renda_media_domiciliar": 2000.0,
@@ -148,6 +179,7 @@
       },
       "resumo_uf": {
         "populacao": 1250000,
+        "pib_mil_reais": 32500000,
         "pib_total_bi": 32.5,
         "pib_per_capita": 26000.0,
         "renda_media_domiciliar": 2075.0,
@@ -167,6 +199,7 @@
       },
       "resumo_uf": {
         "populacao": 1500000,
+        "pib_mil_reais": 40500000,
         "pib_total_bi": 40.5,
         "pib_per_capita": 27000.0,
         "renda_media_domiciliar": 2150.0,
@@ -186,6 +219,7 @@
       },
       "resumo_uf": {
         "populacao": 1750000,
+        "pib_mil_reais": 49000000,
         "pib_total_bi": 49.0,
         "pib_per_capita": 28000.0,
         "renda_media_domiciliar": 2225.0,
@@ -205,6 +239,7 @@
       },
       "resumo_uf": {
         "populacao": 2000000,
+        "pib_mil_reais": 58000000,
         "pib_total_bi": 58.0,
         "pib_per_capita": 29000.0,
         "renda_media_domiciliar": 2300.0,
@@ -224,6 +259,7 @@
       },
       "resumo_uf": {
         "populacao": 2250000,
+        "pib_mil_reais": 67500000,
         "pib_total_bi": 67.5,
         "pib_per_capita": 30000.0,
         "renda_media_domiciliar": 2375.0,
@@ -243,6 +279,7 @@
       },
       "resumo_uf": {
         "populacao": 2500000,
+        "pib_mil_reais": 77500000,
         "pib_total_bi": 77.5,
         "pib_per_capita": 31000.0,
         "renda_media_domiciliar": 2450.0,
@@ -262,6 +299,7 @@
       },
       "resumo_uf": {
         "populacao": 2750000,
+        "pib_mil_reais": 88000000,
         "pib_total_bi": 88.0,
         "pib_per_capita": 32000.0,
         "renda_media_domiciliar": 2525.0,
@@ -281,6 +319,7 @@
       },
       "resumo_uf": {
         "populacao": 3000000,
+        "pib_mil_reais": 99000000,
         "pib_total_bi": 99.0,
         "pib_per_capita": 33000.0,
         "renda_media_domiciliar": 2600.0,
@@ -300,6 +339,7 @@
       },
       "resumo_uf": {
         "populacao": 3250000,
+        "pib_mil_reais": 110500000,
         "pib_total_bi": 110.5,
         "pib_per_capita": 34000.0,
         "renda_media_domiciliar": 2675.0,
@@ -319,6 +359,7 @@
       },
       "resumo_uf": {
         "populacao": 3500000,
+        "pib_mil_reais": 122500000,
         "pib_total_bi": 122.5,
         "pib_per_capita": 35000.0,
         "renda_media_domiciliar": 2750.0,
@@ -338,6 +379,7 @@
       },
       "resumo_uf": {
         "populacao": 3750000,
+        "pib_mil_reais": 135000000,
         "pib_total_bi": 135.0,
         "pib_per_capita": 36000.0,
         "renda_media_domiciliar": 2825.0,
@@ -357,6 +399,7 @@
       },
       "resumo_uf": {
         "populacao": 4000000,
+        "pib_mil_reais": 148000000,
         "pib_total_bi": 148.0,
         "pib_per_capita": 37000.0,
         "renda_media_domiciliar": 2900.0,
@@ -376,6 +419,7 @@
       },
       "resumo_uf": {
         "populacao": 4250000,
+        "pib_mil_reais": 161500000,
         "pib_total_bi": 161.5,
         "pib_per_capita": 38000.0,
         "renda_media_domiciliar": 2975.0,
@@ -395,6 +439,7 @@
       },
       "resumo_uf": {
         "populacao": 4500000,
+        "pib_mil_reais": 175500000,
         "pib_total_bi": 175.5,
         "pib_per_capita": 39000.0,
         "renda_media_domiciliar": 3050.0,
@@ -414,6 +459,7 @@
       },
       "resumo_uf": {
         "populacao": 4750000,
+        "pib_mil_reais": 190000000,
         "pib_total_bi": 190.0,
         "pib_per_capita": 40000.0,
         "renda_media_domiciliar": 3125.0,
@@ -433,6 +479,7 @@
       },
       "resumo_uf": {
         "populacao": 5000000,
+        "pib_mil_reais": 205000000,
         "pib_total_bi": 205.0,
         "pib_per_capita": 41000.0,
         "renda_media_domiciliar": 3200.0,
@@ -452,6 +499,7 @@
       },
       "resumo_uf": {
         "populacao": 5250000,
+        "pib_mil_reais": 220500000,
         "pib_total_bi": 220.5,
         "pib_per_capita": 42000.0,
         "renda_media_domiciliar": 3275.0,
@@ -471,6 +519,7 @@
       },
       "resumo_uf": {
         "populacao": 5500000,
+        "pib_mil_reais": 236500000,
         "pib_total_bi": 236.5,
         "pib_per_capita": 43000.0,
         "renda_media_domiciliar": 3350.0,
@@ -490,6 +539,7 @@
       },
       "resumo_uf": {
         "populacao": 5750000,
+        "pib_mil_reais": 253000000,
         "pib_total_bi": 253.0,
         "pib_per_capita": 44000.0,
         "renda_media_domiciliar": 3425.0,
@@ -509,6 +559,7 @@
       },
       "resumo_uf": {
         "populacao": 6000000,
+        "pib_mil_reais": 270000000,
         "pib_total_bi": 270.0,
         "pib_per_capita": 45000.0,
         "renda_media_domiciliar": 3500.0,
@@ -528,6 +579,7 @@
       },
       "resumo_uf": {
         "populacao": 6250000,
+        "pib_mil_reais": 287500000,
         "pib_total_bi": 287.5,
         "pib_per_capita": 46000.0,
         "renda_media_domiciliar": 3575.0,
@@ -547,6 +599,7 @@
       },
       "resumo_uf": {
         "populacao": 6500000,
+        "pib_mil_reais": 305500000,
         "pib_total_bi": 305.5,
         "pib_per_capita": 47000.0,
         "renda_media_domiciliar": 3650.0,
@@ -566,6 +619,7 @@
       },
       "resumo_uf": {
         "populacao": 6750000,
+        "pib_mil_reais": 324000000,
         "pib_total_bi": 324.0,
         "pib_per_capita": 48000.0,
         "renda_media_domiciliar": 3725.0,
@@ -585,6 +639,7 @@
       },
       "resumo_uf": {
         "populacao": 7000000,
+        "pib_mil_reais": 343000000,
         "pib_total_bi": 343.0,
         "pib_per_capita": 49000.0,
         "renda_media_domiciliar": 3800.0,
@@ -604,6 +659,7 @@
       },
       "resumo_uf": {
         "populacao": 7250000,
+        "pib_mil_reais": 362500000,
         "pib_total_bi": 362.5,
         "pib_per_capita": 50000.0,
         "renda_media_domiciliar": 3875.0,
@@ -623,6 +679,7 @@
       },
       "resumo_uf": {
         "populacao": 7500000,
+        "pib_mil_reais": 382500000,
         "pib_total_bi": 382.5,
         "pib_per_capita": 51000.0,
         "renda_media_domiciliar": 3950.0,

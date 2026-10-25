@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "schema_version": "1.0",
+    "schema_version": "1.1",
     "updated_at": "2026-10-25",
     "tipo_dados": "simulados",
     "fonte_geografica": "Cadastro de códigos e nomes de UFs/regiões IBGE",
@@ -15,13 +15,33 @@
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
+      "pib_mil_reais": {
+        "unidade": "mil BRL/ano, preços correntes",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
       "pib_total_bi": {
-        "unidade": "bilhões de BRL/ano",
+        "unidade": "bilhões de BRL/ano (derivado)",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
       "pib_per_capita": {
         "unidade": "BRL/pessoa/ano",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_renda": {
+        "unidade": "pessoas no universo da variável de renda",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "responsaveis_com_renda": {
+        "unidade": "pessoas em setores com massa ou média divulgada",
+        "periodo_referencia": null,
+        "fonte": "fixture sintética; sem período estatístico real"
+      },
+      "cobertura_renda_proporcao": {
+        "unidade": "proporção [0,1] do universo de renda coberto",
         "periodo_referencia": null,
         "fonte": "fixture sintética; sem período estatístico real"
       },
@@ -52,6 +72,10 @@
       }
     },
     "aviso": "DEMONSTRAÇÃO: todos os indicadores são simulados; não usar para análise oficial. Códigos de bairros e setores são fixtures de formato. A origem de malha é um cenário do contrato, sem geometria ou vínculo IBGE verificado.",
+    "perfil_codigo_setor": "15_digitos_sufixo_maiusculo_opcional",
+    "release_censo": null,
+    "universo_renda": "fixture: responsáveis DPPO, inclusive sem rendimento",
+    "mapeamento_variaveis_censo": null,
     "cd_uf": "35",
     "sigla_uf": "SP",
     "nm_uf": "São Paulo",
@@ -62,6 +86,7 @@
   },
   "resumo_uf": {
     "populacao": 5750000,
+    "pib_mil_reais": 253000000,
     "pib_total_bi": 253.0,
     "pib_per_capita": 44000.0,
     "renda_media_domiciliar": 3425.0,
@@ -94,11 +119,19 @@
           "origem_malha": "setores_agregados",
           "cd_setores": [
             "355030800000001",
-            "355030800000002"
+            "355030800000002A",
+            "355030800000003"
           ],
-          "metodo_agregacao": "media_ponderada_domicilios",
-          "populacao": 900,
-          "domicilios": 400,
+          "metodo_agregacao": "massa_e_media_ponderada_responsaveis_validos",
+          "populacao": 912,
+          "domicilios": 618,
+          "responsaveis_renda": 404,
+          "responsaveis_com_renda": 400,
+          "setores_sem_renda": 1,
+          "setores_sob_sigilo": 1,
+          "setores_por_massa": 1,
+          "setores_por_media": 1,
+          "cobertura_renda_proporcao": 0.9901,
           "renda_media_responsavel": 3500.0,
           "gini_estimado": null
         }
@@ -130,11 +163,19 @@
           "origem_malha": "setores_agregados",
           "cd_setores": [
             "350950200000001",
-            "350950200000002"
+            "350950200000002A",
+            "350950200000003"
           ],
-          "metodo_agregacao": "media_ponderada_domicilios",
-          "populacao": 900,
-          "domicilios": 400,
+          "metodo_agregacao": "massa_e_media_ponderada_responsaveis_validos",
+          "populacao": 912,
+          "domicilios": 618,
+          "responsaveis_renda": 404,
+          "responsaveis_com_renda": 400,
+          "setores_sem_renda": 1,
+          "setores_sob_sigilo": 1,
+          "setores_por_massa": 1,
+          "setores_por_media": 1,
+          "cobertura_renda_proporcao": 0.9901,
           "renda_media_responsavel": 3500.0,
           "gini_estimado": null
         }

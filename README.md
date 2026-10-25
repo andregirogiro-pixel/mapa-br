@@ -33,7 +33,8 @@ O índice aponta para a partição disponível pelo campo `arquivo`, relativo a
 UF. As outras 25 UFs têm resumo e `dados_disponiveis: false`.
 
 O fallback recebe setores já associados a um grupo territorial, conserva seus
-códigos e calcula renda ponderada por domicílios. Não infere bairros nem calcula
+códigos e calcula renda usando o universo explícito de responsáveis e cobertura divulgada. Prioriza massa de rendimento sobre médias setoriais arredondadas; não usa
+setores sob sigilo como renda zero. Não infere bairros nem calcula
 Gini a partir de médias. Consulte [AGENTS.md](AGENTS.md) para o contrato completo.
 
 ## Dependências para futura ingestão
@@ -46,3 +47,23 @@ python3 -m venv .venv
 O arquivo de requisitos declara faixas compatíveis para a próxima etapa; não é
 um lockfile. O gerador e seus testes usam apenas a biblioteca padrão. Não há
 download de bases, API, credenciais ou serviços necessários nesta etapa.
+
+## Revisão do contrato (1.1)
+
+- Setores aceitam 15 dígitos e um sufixo opcional A–Z, preservado no join.
+  Esse é o perfil das fixtures; não verifica uma release real do IBGE.
+- Na entrada da agregação, `domicilios` conta o total físico e
+  `responsaveis_renda` é obrigatório e corresponde ao universo da renda.
+- `massa_rendimento_setor` (BRL/mês) é opcional e prevalece sobre a média;
+  exige o mesmo universo. `status_renda: "sigilo"` é explícito; ausência
+  genérica é contabilizada separadamente. Ainda não há parser de CSV do Censo.
+- `cobertura_renda_proporcao` está em [0,1], não em porcentagem. Sem cobertura,
+  a renda é null. Arredondamento monetário final: Decimal/ROUND_HALF_EVEN.
+- PIB canônico: `pib_mil_reais` inteiro nas fixtures. `pib_total_bi` é derivado.
+  O agregador rejeita frações em vez de truncá-las. Uma fonte com frações
+  precisará de adaptação decimal explícita antes de ser integrada.
+
+A nomenclatura das variáveis, os universos, os marcadores de ausência e a
+especificação dos códigos deverão ser confirmados no dicionário do arquivo
+escolhido. Os dados continuam simulados; `release_censo` e
+`mapeamento_variaveis_censo` permanecem nulos.
