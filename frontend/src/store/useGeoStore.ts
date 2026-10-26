@@ -41,7 +41,9 @@ export function createGeoStore(browser: Window = window) {
     navigate: nav => {
       const clean = validateNavigation(nav);
       const url = new URL(browser.location.href);
+      const modo = url.searchParams.get('modo');
       url.search = navigationSearch(clean);
+      if (modo) url.searchParams.set('modo', modo);
       if (url.href !== browser.location.href) browser.history.pushState(null, '', url);
       set({ navigation: clean, routeError: '' });
     },
@@ -77,7 +79,7 @@ export function createGeoStore(browser: Window = window) {
     setMetrica: value => set({ metrica: metricSchema.parse(value) }),
     voltarNivel: () => {
       const nav = get().navigation;
-      if (nav.level === 'bairro') get().navigate({ level: 'municipio', cd_uf: nav.cd_uf, cd_mun: nav.cd_mun });
+      if (nav.level === 'bairro' || nav.level === 'setor') get().navigate({ level: 'municipio', cd_uf: nav.cd_uf, cd_mun: nav.cd_mun });
       else if (nav.level === 'municipio') get().navigate({ level: 'uf', cd_uf: nav.cd_uf });
       else if (nav.level === 'uf' && get().regioesPorUf[nav.cd_uf]) get().navigate({ level: 'regiao', cd_regiao: get().regioesPorUf[nav.cd_uf]! });
       else get().irParaPais();

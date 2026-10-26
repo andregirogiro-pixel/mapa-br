@@ -129,3 +129,12 @@ h1 { font-size: clamp(24px, 3vw, 40px); letter-spacing: -1.3px; margin: 8px 0 25
 .aggregation-audit dd { margin: 0; color: #9ce4c0; overflow-wrap: anywhere; max-width: 220px; text-align: right; }
 .tse-toggle { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: #9dd6ec; font-size: 12px; flex: 0 0 auto; }
 .tse-toggle input { width: auto; }
+
+.mode-link { font-size: 11px; color: #b7ddca; }
+.official-shell .map-panel { position: relative; height: auto; min-height: 700px; }
+.official-shell .demo-map { height: 510px; }
+.official-shell .demo-map-wrap { width: 100%; }
+.official-shell .map-controls select { max-width: 100%; }
+.official-territories { max-height: 450px; }
+.official-territories button[aria-pressed="true"] { background: #30202a; border-color: #f43f5e; }
+@media (max-width: 700px) { .official-shell .demo-map { height: 380px; } .mode-link { max-width: 140px; text-align: right; } }

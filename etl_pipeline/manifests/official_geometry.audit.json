@@ -1,0 +1,242 @@
+{
+  "status": "approved_cartography_only",
+  "referencia": "Censo 2022",
+  "sources": {
+    "distritos": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/distritos/shp/BR/BR_distritos_CD2022.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/distritos/shp/BR/BR_distritos_CD2022.zip",
+      "bytes": 237622935,
+      "sha256_local": "4247509c713e35c182f1c77a16aab39855a5f6ba067dd4bdaee99ede8026767c",
+      "downloaded_at": "2026-10-26T10:04:14.268974+00:00"
+    },
+    "setores_sc": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/setores/shp/UF/SC/SC_setores_CD2022.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/setores/shp/UF/SC/SC_setores_CD2022.zip",
+      "bytes": 75317836,
+      "sha256_local": "6914fcc25bc8880565778582ff4753cb54b23294be4882a3f372138b4bd3239b",
+      "downloaded_at": "2026-10-26T10:04:08.119721+00:00"
+    },
+    "dicionario_malha": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/Dicionario_de_dados_malha_agregados.xlsx",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/Dicionario_de_dados_malha_agregados.xlsx",
+      "bytes": 18860,
+      "sha256_local": "0dffb669ee90e1ffb86a7c8666cc066d5121d44b494013cc1149e50cc75073b1",
+      "downloaded_at": "2026-10-26T10:01:02.270393+00:00"
+    },
+    "basico": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip",
+      "bytes": 15418417,
+      "sha256_local": "ec04624286233d699ebe69c7b9625744a1cfdfc8352126f30245bdef5e9bdc63",
+      "downloaded_at": "2026-10-26T07:36:27.393874+00:00"
+    },
+    "dicionario_basico": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "bytes": 118369,
+      "sha256_local": "0b8aedece57f6125d785b6aa2234cfd587e92dfb6ce5ca6ace8c67f140831344",
+      "downloaded_at": "2026-10-26T07:33:01.715298+00:00"
+    }
+  },
+  "source_edition": "malha_com_atributos CD2022, publicação listada em 2024-11-13; básico rev. 20260520",
+  "source_attempts": [
+    {
+      "url": "https://ftp.ibge.gov.br/organizacao_do_territorio/",
+      "result": "HTTP 404"
+    },
+    {
+      "url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/",
+      "result": "CONNECT 403, domínio bloqueado na configuração inicial"
+    },
+    {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/",
+      "result": "HTTP 200; alternativa oficial da mesma referência censitária examinada e selecionada"
+    }
+  ],
+  "statistics": "indisponiveis; nenhum indicador extraído da malha ou imputado",
+  "bairros": "join não auditado; sem agrupamento ou atribuição de indicadores",
+  "exclusions_water_body_denylist": [],
+  "transformations": [
+    "dissolve geométrico dos distritos CD2022 por CD_UF e por CD_MUN de SC; sem alteração de edição",
+    "SIRGAS 2000 EPSG:4674 → WGS84 EPSG:4326, always_xy, sem arredondamento de coordenadas",
+    "referência integral separada da versão de exibição; sem make_valid, buffer ou reparo silencioso"
+  ],
+  "files": {
+    "reference/ufs.geojson": {
+      "sha256_local": "bb09ceb6589074c4d030a95ed523a827ddaeb9ba4f4435dad13c84a085967460",
+      "bytes": 115924040
+    },
+    "ufs.geojson": {
+      "sha256_local": "d18a3ef8f6d1403b82a4471eec7020511134b944834a3d7bdcbf5aae0322b1c8",
+      "bytes": 1972619,
+      "entities": 27,
+      "source_vertices": 1136451,
+      "display_vertices": 48279,
+      "coverage_valid": true,
+      "simplification": "coverage_simplify; adjacência e cobertura verificadas",
+      "tolerance_degrees": 0.005,
+      "ids_preserved": true
+    },
+    "reference/municipios/42.geojson": {
+      "sha256_local": "d155747b4daa1e4b7387ab4085f7e3c1c2b189574a1f4ff4366111adf079c4dc",
+      "bytes": 243911439
+    },
+    "municipios/42.geojson": {
+      "sha256_local": "da2fec4a2c4b3f388204a7167d348cab54eb5cd04f2537769f17179b6fb22a8b",
+      "bytes": 20132747,
+      "entities": 295,
+      "source_vertices": 2504371,
+      "display_vertices": 490465,
+      "coverage_valid": true,
+      "simplification": "coverage_simplify; adjacência e cobertura verificadas",
+      "tolerance_degrees": 0.0001,
+      "ids_preserved": true
+    },
+    "reference/setores/42/4205407.geojson": {
+      "sha256_local": "6dacd63a34d04b19f88569fffe063f8f46cb7b797b82c1af22eadc3d4c1f998e",
+      "bytes": 16756392
+    },
+    "setores/42/4205407.geojson": {
+      "sha256_local": "5c755137dcccc4fda630bcbaec4c32be9ad9c1a57119dc168f4f109f385ab3f4",
+      "bytes": 7107324,
+      "entities": 1004,
+      "source_vertices": 168100,
+      "display_vertices": 168100,
+      "coverage_valid": true,
+      "simplification": "nenhuma; limites integrais preservados",
+      "tolerance_degrees": null,
+      "ids_preserved": true
+    },
+    "ufs.inventory.json": {
+      "sha256_local": "60b78108633232679feeae70fb76662f230f4a24e606e866b2fa7a8cf447ab95",
+      "bytes": 288
+    },
+    "municipios/42.inventory.json": {
+      "sha256_local": "8bc6b8b4c732e135d0e76f5048a3fb1a05b3926500879e673b16bde01ad8550f",
+      "bytes": 4443
+    },
+    "setores/42/4205407.inventory.json": {
+      "sha256_local": "822d892e8d0dc4a7b1336f03f25185a97b20ce7221d6fd8bf8269e4714b614bd",
+      "bytes": 23110
+    }
+  },
+  "district_schema": {
+    "member": "BR_distritos_CD2022.shp",
+    "crs_epsg": 4674,
+    "crs_wkt": "GEOGCRS[\"SIRGAS 2000\",DATUM[\"Sistema de Referencia Geocentrico para las AmericaS 2000\",ELLIPSOID[\"GRS 1980\",6378137,298.257222101,LENGTHUNIT[\"metre\",1]],ID[\"EPSG\",6674]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"Degree\",0.0174532925199433]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"Degree\",0.0174532925199433]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"Degree\",0.0174532925199433]]]",
+    "encoding": "UTF-8",
+    "dbf_types": {
+      "CD_REGIAO": "C",
+      "NM_REGIAO": "C",
+      "CD_UF": "C",
+      "NM_UF": "C",
+      "CD_MUN": "C",
+      "NM_MUN": "C",
+      "CD_DIST": "C",
+      "NM_DIST": "C",
+      "CD_RGINT": "C",
+      "NM_RGINT": "C",
+      "CD_RGI": "C",
+      "NM_RGI": "C",
+      "CD_CONCURB": "C",
+      "NM_CONCURB": "C",
+      "AREA_KM2": "F",
+      "v0001": "C",
+      "v0002": "C",
+      "v0003": "C",
+      "v0004": "C",
+      "v0005": "C",
+      "v0006": "C",
+      "v0007": "C"
+    },
+    "unassigned_features": [
+      {
+        "ordinal_zero_based": 10698,
+        "cd_uf": "43",
+        "cd_mun": null,
+        "cd_dist": null,
+        "policy": "incluída somente no limite da UF explicitamente declarado pela origem; sem inventar códigos"
+      }
+    ]
+  },
+  "sector_schema": {
+    "member": "SC_setores_CD2022.shp",
+    "crs_epsg": 4674,
+    "crs_wkt": "GEOGCRS[\"SIRGAS 2000\",DATUM[\"Sistema de Referencia Geocentrico para las AmericaS 2000\",ELLIPSOID[\"GRS 1980\",6378137,298.257222101,LENGTHUNIT[\"metre\",1]],ID[\"EPSG\",6674]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"Degree\",0.0174532925199433]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"Degree\",0.0174532925199433]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"Degree\",0.0174532925199433]]]",
+    "encoding": "UTF-8",
+    "dbf_types": {
+      "CD_SETOR": "C",
+      "SITUACAO": "C",
+      "CD_SIT": "C",
+      "CD_TIPO": "C",
+      "AREA_KM2": "F",
+      "CD_REGIAO": "C",
+      "NM_REGIAO": "C",
+      "CD_UF": "C",
+      "NM_UF": "C",
+      "CD_MUN": "C",
+      "NM_MUN": "C",
+      "CD_DIST": "C",
+      "NM_DIST": "C",
+      "CD_SUBDIST": "C",
+      "NM_SUBDIST": "C",
+      "CD_BAIRRO": "C",
+      "NM_BAIRRO": "C",
+      "CD_NU": "C",
+      "NM_NU": "C",
+      "CD_FCU": "C",
+      "NM_FCU": "C",
+      "CD_AGLOM": "C",
+      "NM_AGLOM": "C",
+      "CD_RGINT": "C",
+      "NM_RGINT": "C",
+      "CD_RGI": "C",
+      "NM_RGI": "C",
+      "CD_CONCURB": "C",
+      "NM_CONCURB": "C",
+      "v0001": "F",
+      "v0002": "F",
+      "v0003": "F",
+      "v0004": "F",
+      "v0005": "F",
+      "v0006": "F",
+      "v0007": "F"
+    },
+    "unassigned_features": []
+  },
+  "inventory_sc": {
+    "actual": 16736,
+    "expected": 16736,
+    "missing": [],
+    "extra": []
+  },
+  "municipal_inventory_sc": {
+    "actual": 295,
+    "expected": 295,
+    "missing": [],
+    "extra": []
+  },
+  "invalid_reference_sectors_sc": [
+    {
+      "cd_setor": "421660213000199",
+      "cd_mun": "4216602",
+      "reason": "Ring Self-intersection[-48.6605203999999 -27.5981063]"
+    }
+  ],
+  "inventory_florianopolis": {
+    "actual": 1004,
+    "expected": 1004,
+    "missing": [],
+    "extra": []
+  },
+  "spatial_membership_florianopolis": {
+    "method": "difference por setor vs município dissolvido dos distritos, área em EPSG:31982",
+    "tolerance_m2": 1,
+    "max_outside_m2": 0.0,
+    "violations": []
+  },
+  "limitations": [
+    "Autointerseção na referência SC fora de Florianópolis permanece registrada, sem reparo. Não é publicada nesta entrega.",
+    "Indicadores e correspondência com bairros não publicados; expansão do detalhe limitada a Florianópolis."
+  ]
+}

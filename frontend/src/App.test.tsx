@@ -11,7 +11,7 @@ beforeEach(() => window.history.replaceState(null, '', '/'));
 describe('drill-down interativo', () => {
   it('percorre os níveis, seleciona fallback pelo id e limpa filhos ao trocar UF', async () => {
     const user = userEvent.setup(); const fetcher = fixtureFetcher();
-    render(<App loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
     const panel = screen.getByRole('region', { name: 'Exploração territorial' });
     await user.click(await screen.findByRole('button', { name: 'Sul' }));
     await waitFor(() => expect(within(panel).getByRole('heading', { level: 1 })).toHaveTextContent('Sul'));
@@ -30,7 +30,7 @@ describe('drill-down interativo', () => {
   });
   it('aceita link profundo e acompanha voltar/avançar do navegador', async () => {
     window.history.replaceState(null, '', '?level=municipio&cd_uf=42&cd_mun=4205407');
-    render(<App loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
     expect(await screen.findByRole('heading', { name: 'Florianópolis', level: 1 })).toBeInTheDocument();
     act(() => { window.history.pushState(null, '', '?level=uf&cd_uf=35'); window.dispatchEvent(new PopStateEvent('popstate')); });
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('São Paulo'));
@@ -38,18 +38,18 @@ describe('drill-down interativo', () => {
   });
   it('exibe resumo de UF sem detalhe sem buscar municípios', async () => {
     window.history.replaceState(null, '', '?level=uf&cd_uf=12'); const fetcher = fixtureFetcher();
-    render(<App loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
     expect(await screen.findByText('O desdobramento municipal não faz parte do recorte carregado.')).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it('não mostra 100% de cobertura quando o JSON arredondou a parcela não divulgada', async () => {
-    render(<App loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
     expect(await screen.findByText('< 100%')).toBeInTheDocument();
   });
   it('volta pela hierarquia com a métrica compartilhada e o histórico sincronizados', async () => {
     window.history.replaceState(null, '', '?level=municipio&cd_uf=42&cd_mun=4205407');
     const user = userEvent.setup();
-    render(<App loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
     await screen.findByRole('heading', { level: 1, name: 'Florianópolis' });
     await user.selectOptions(screen.getByRole('combobox', { name: 'Colorir por' }), 'setores_sob_sigilo');
     await user.click(screen.getByRole('button', { name: /Voltar nível/ }));
@@ -66,7 +66,7 @@ describe('drill-down interativo', () => {
   it('avisa o fallback de PIB nos setores e retoma a métrica ao voltar à UF', async () => {
     window.history.replaceState(null, '', '?level=uf&cd_uf=42');
     const user = userEvent.setup(); const fetcher = fixtureFetcher();
-    render(<App loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
+    render(<App mode="demo" loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
     const panel = screen.getByRole('region', { name: 'Exploração territorial' });
     await within(panel).findByRole('button', { name: /Florianópolis/ });
     await user.selectOptions(screen.getByRole('combobox', { name: 'Colorir por' }), 'pib_per_capita');

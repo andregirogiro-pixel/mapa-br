@@ -13,12 +13,14 @@ import type { Navigation } from './state/navigation';
 import { GeoStoreProvider, useGeoStore } from './store/useGeoStore';
 import type { MetricaAtiva } from './store/useGeoStore';
 import './styles.css';
+import { OfficialExplorer } from './components/OfficialExplorer';
 
 const MapViewport = lazy(() => import('./components/MapViewport'));
 
 const defaultUrl = new URL(import.meta.env.VITE_DATA_URL || 'data/processed/brasil.json',
   new URL(import.meta.env.BASE_URL, document.baseURI)).href;
 const defaultLoader = new DataLoader(defaultUrl);
+const officialLoader = new DataLoader(new URL('geo/official/catalogo.json', new URL(import.meta.env.BASE_URL, document.baseURI)).href);
 type Metric = MetricaAtiva;
 const metricLabels = Object.fromEntries(Object.entries(METRICAS_CATALOGO).map(([id, meta]) => [id, meta.label])) as Record<Metric, string>;
 const number = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
@@ -44,11 +46,11 @@ const position: Record<string, [number, number]> = {
   DF: [4, 4], MS: [2, 4], MG: [4, 5], ES: [5, 5], SP: [3, 6], RJ: [5, 6],
   PR: [2, 6], SC: [2, 7], RS: [1, 8],
 };
-export default function App({ loader = defaultLoader }: { loader?: DataLoader }) {
+export default function App({ loader = defaultLoader, mode = new URLSearchParams(window.location.search).get('modo') === 'demo' ? 'demo' : 'oficial' }: { loader?: DataLoader; mode?: 'demo' | 'oficial' }) {
   const [client] = useState(() => new QueryClient({ defaultOptions: { queries: {
     staleTime: Infinity, gcTime: Infinity, retry: 1, refetchOnWindowFocus: false, networkMode: 'always',
   } } }));
-  return <QueryClientProvider client={client}><GeoStoreProvider><Explorer loader={loader} /></GeoStoreProvider></QueryClientProvider>;
+  return <QueryClientProvider client={client}><GeoStoreProvider>{mode === 'demo' ? <Explorer loader={loader} /> : <OfficialExplorer loader={officialLoader} />}</GeoStoreProvider></QueryClientProvider>;
 }
 function Explorer({ loader }: { loader: DataLoader }) {
   const { navigation: nav, routeError, navigate, metrica: metric, setMetrica,
@@ -104,7 +106,7 @@ function Explorer({ loader }: { loader: DataLoader }) {
   return <div className="app-shell">
     <header className="topbar"><a className="brand" href={import.meta.env.BASE_URL} onClick={e => { e.preventDefault(); navigate({ level: 'pais' }); }}>
       <span className="brand-symbol">▦</span> MAPA<span className="brand-br">BR</span><small>OBSERVATÓRIO TERRITORIAL</small></a>
-      <div className="header-meta"><span className="live-dot" /> {demo ? 'Demonstração' : 'Exploração de dados'}<span className="header-date">{index?.metadata.updated_at}</span></div>
+      <div className="header-meta"><a className="mode-link" href={import.meta.env.BASE_URL}>Abrir mapa oficial</a><span className="live-dot" /> {demo ? 'Demonstração' : 'Exploração de dados'}<span className="header-date">{index?.metadata.updated_at}</span></div>
     </header>
     <div className="provenance"><span>{demo ? 'DADOS SIMULADOS' : 'RECORTE DA FONTE DECLARADA'}</span>
       {demo ? 'Indicadores ilustrativos. Não representam estatísticas oficiais.' : 'A cobertura territorial e os períodos dependem dos arquivos fornecidos.'}</div>
@@ -123,7 +125,7 @@ function Explorer({ loader }: { loader: DataLoader }) {
     <main className="split-screen">
       <section className="map-panel" aria-label="Exploração territorial">
         <div className="map-heading"><div><span className="eyebrow">EXPLORAÇÃO TERRITORIAL / {nav.level.toUpperCase()}</span><h1>{title ?? 'Carregando território…'}</h1></div>
-          <span className="level-tag">{({ pais: '01', regiao: '02', uf: '03', municipio: '04', bairro: '05' })[nav.level]} / 05</span></div>
+          <span className="level-tag">{({ pais: '01', regiao: '02', uf: '03', municipio: '04', bairro: '05', setor: '05' })[nav.level]} / 05</span></div>
         <div className="map-controls"><label>Colorir por <select value={metric} onChange={e => setMetrica(e.target.value as Metric)}>
           {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}{!METRICAS_CATALOGO[key as Metric].disponivelEmBairro ? ' (Até Município)' : ''}</option>)}</select></label></div>
         {municipality && <label className="tse-toggle"><input type="checkbox" checked={showTse} onChange={e => setShowTse(e.target.checked)} /> Exibir locais de votação (TSE)</label>}

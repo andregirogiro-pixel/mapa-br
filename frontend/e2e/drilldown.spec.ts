@@ -6,7 +6,7 @@ test('carga progressiva real, cinco níveis e histórico', async ({ page }) => {
   const requested: string[] = []; const errors: string[] = [];
   page.on('request', req => { if (req.url().includes('/data/processed/')) requested.push(new URL(req.url()).pathname); });
   page.on('pageerror', err => errors.push(err.message));
-  await page.goto('/');
+  await page.goto('/?modo=demo');
   await expect(page.getByRole('button', { name: 'Santa Catarina (SC)' })).toBeVisible();
   expect(requested).toEqual(['/data/processed/brasil.json']);
   await page.screenshot({ path: '/tmp/mapa-br-desktop.png', fullPage: true });
@@ -34,7 +34,7 @@ test('troca rápida de UF descarta resposta tardia', async ({ page }) => {
   await page.route('**/data/processed/uf/42.json', route => new Promise<void>(resolve => {
     release = async () => { await route.fulfill({ json: sc }); resolve(); };
   }));
-  await page.goto('/');
+  await page.goto('/?modo=demo');
   await expect(page.getByRole('button', { name: 'Santa Catarina (SC)' })).toBeVisible();
   await page.getByRole('combobox', { name: 'Selecionar UF' }).selectOption('42');
   await expect.poll(() => Boolean(release)).toBe(true);
@@ -47,7 +47,7 @@ test('troca rápida de UF descarta resposta tardia', async ({ page }) => {
 
 test('link profundo no celular e UF sem desdobramento', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/?level=bairro&cd_uf=42&cd_mun=4205407&id_agregacao=demo%3A4205407%3Agrupo-01');
+  await page.goto('/?modo=demo&level=bairro&cd_uf=42&cd_mun=4205407&id_agregacao=demo%3A4205407%3Agrupo-01');
   await expect(page.getByText('420540700000002A', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: '/tmp/mapa-br-mobile.png', fullPage: true });
@@ -69,7 +69,7 @@ test('MapLibre offline: malhas lazy, clique setorial e métrica sem rede externa
     const host = new URL(route.request().url()).hostname;
     return host === '127.0.0.1' || host === 'localhost' ? route.continue() : route.abort();
   });
-  await page.goto('/');
+  await page.goto('/?modo=demo');
   const map = page.getByTestId('demo-map');
   await expect(map).toHaveAttribute('data-ready', 'true');
   const originalCanvas = await map.locator('canvas').elementHandle();
@@ -105,7 +105,7 @@ test('MapLibre offline: malhas lazy, clique setorial e métrica sem rede externa
 
 test('PIB é preservado no seletor e usa renda na pintura intramunicipal com navegador offline', async ({ page }) => {
   await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'onLine', { get: () => false }));
-  await page.goto('/?level=uf&cd_uf=42');
+  await page.goto('/?modo=demo&level=uf&cd_uf=42');
   const panel = page.getByRole('region', { name: 'Exploração territorial' });
   await panel.getByRole('button', { name: /Florianópolis/ }).waitFor();
   await page.getByRole('combobox', { name: 'Colorir por' }).selectOption('pib_per_capita');
@@ -127,7 +127,7 @@ test('PIB é preservado no seletor e usa renda na pintura intramunicipal com nav
 test('sidecar TSE opcional: pontos separados, agrupamento e limpeza ao trocar UF', async ({ page }) => {
   let requests = 0;
   await page.route('**/data/processed/tse/42/4205407.json', route => { requests++; return route.fulfill({ json: tseFixture() }); });
-  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await page.goto('/?modo=demo&level=municipio&cd_uf=42&cd_mun=4205407');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
   expect(requests).toBe(0);
   await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
@@ -154,7 +154,7 @@ test('sidecar TSE opcional: pontos separados, agrupamento e limpeza ao trocar UF
 });
 
 test('sidecar ausente retorna indisponibilidade, preservando o Censo', async ({ page }) => {
-  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await page.goto('/?modo=demo&level=municipio&cd_uf=42&cd_mun=4205407');
   await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
   await expect(page.getByText('Dados eleitorais não disponíveis para este município.')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
@@ -164,7 +164,7 @@ test('sidecar ausente retorna indisponibilidade, preservando o Censo', async ({ 
 test('erro de proveniência do sidecar não contamina a camada do Censo', async ({ page }) => {
   const payload = tseFixture(); payload.metadata.tipo_dados = 'fonte_tse_declarada';
   await page.route('**/data/processed/tse/42/4205407.json', route => route.fulfill({ json: payload }));
-  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await page.goto('/?modo=demo&level=municipio&cd_uf=42&cd_mun=4205407');
   await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
   await expect(page.getByText(/Não foi possível validar\/carregar o sidecar TSE/)).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');

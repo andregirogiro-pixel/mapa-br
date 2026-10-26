@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { FeatureCollection, Polygon } from 'geojson';
+import type { MapGeometry } from '../types/geometry';
 import { DataLoader, type LoadedData } from './dataLoader';
 import { buildSectorToGroupMap } from './sectorJoin';
 import { cdSetorSchema, cdUfSchema, cdMunSchema } from '../types/contract';
@@ -11,7 +11,7 @@ const collectionSchema = z.object({ type: z.literal('FeatureCollection'), demo: 
   features: z.array(z.object({ type: z.literal('Feature'), properties: z.record(z.unknown()),
     geometry: z.object({ type: z.literal('Polygon'), coordinates: z.array(ring).min(1) }) })).min(1),
 });
-export interface DemoGeometry { collection: FeatureCollection<Polygon>; field: string; rowByFeature: Map<string, string> }
+export type DemoGeometry = MapGeometry;
 export async function loadDemoGeometry(loader: DataLoader, data: LoadedData, nav: Navigation, signal: AbortSignal): Promise<DemoGeometry> {
   if (data.index.metadata.tipo_dados !== 'simulados') throw new Error('Geometria sintética exige fixtures simuladas.');
   const municipal = nav.level === 'municipio' || nav.level === 'bairro';

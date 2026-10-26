@@ -1,7 +1,10 @@
 # Interface territorial
 
-React + Vite + TypeScript estrito. Usa os JSONs existentes e valida respostas
-com Zod; inclui uma malha sintética explicitamente identificada. Node >= 22.12 (validado em Node 24).
+React + Vite + TypeScript estrito. O modo oficial usa malhas locais auditadas
+e navegação independente dos indicadores; o modo demonstrativo preserva os
+JSONs existentes e sua malha sintética identificada. Validação runtime com Zod. Node >= 22.12 (validado em Node 24).
+
+Prepare primeiro as geometrias oficiais conforme [a seção abaixo](#mapa-oficial-primeira-entrega).
 
 ```bash
 cd frontend
@@ -28,7 +31,7 @@ desktop/celular dos testes são gravadas em /tmp, não versionadas.
 
 ## Configuração dos dados e publicação
 
-Por padrão, usa as fixtures. Para um recorte real já gerado pelo pipeline:
+O modo demonstrativo usa as fixtures. Para um recorte estatístico real já gerado pelo pipeline:
 
 ```bash
 MAPA_BR_DATA_DIR=../data/processed_real npm run dev
@@ -181,3 +184,45 @@ id_agregacao e mostra o aviso do recorte eleitoral. Ausência de sidecar retorna
 indisponibilidade, não votos zero. Não há ingestão TSE real neste passo; dados
 sintéticos eleitorais existem apenas nos testes. O produtor Python futuro deverá
 usar Decimal/ROUND_HALF_EVEN e demonstrar contenção na malha compatível.
+
+## Mapa oficial (primeira entrega)
+
+A abertura padrão é o modo oficial. Execute a preparação descrita em
+[GEOMETRIES.md](../etl_pipeline/GEOMETRIES.md) uma vez, antes do dev/build.
+As malhas locais são ignoradas pelo Git; o build não faz download automático.
+Com a árvore preparada, a aplicação funciona sem rede externa.
+`?modo=demo` abre a demonstração preservada, explicitamente simulada. O link no
+cabeçalho alterna os modos com recarregamento, isolando os respectivos caches.
+
+O estado `CartographyState` em `officialGeometry.ts` declara `kind: cartografia`
+e `statistics.status: indisponiveis`. Não é um payload socioeconômico parcial.
+Reutiliza DataLoader, cache compartilhado, cancelamento e resolução por arquivo
+pai. O catálogo guarda somente caminhos e disponibilidade. Inventários são arquivos
+separados, carregados junto à malha do respectivo nível; só UFs são carregadas inicialmente,
+municípios após SC e setores após Florianópolis. O caminho setorial é relativo
+a `municipios/42.geojson`. `BASE_URL` também se aplica às malhas e fontes.
+
+`OfficialExplorer.tsx` usa a store e o MapViewport existentes. `setor` é um estado
+explícito de navegação com cd_uf/cd_mun/cd_setor textuais, URL e histórico. Seleção
+realça o contorno e ajusta a câmera; Voltar nível retorna ao município. A lista
+pesquisável permite navegar por teclado e sem WebGL. Outras UFs mantêm seu
+contorno e informam a indisponibilidade municipal. Outros municípios de SC
+mantêm o limite municipal e informam a indisponibilidade setorial.
+
+O seletor temático fica desabilitado quando não há indicadores, e o preenchimento
+é neutro. Não há fallback para renda, indicadores simulados ou preenchimento de
+lacunas. Os setores não são apresentados como bairros. O arquivo de proveniência
+local é acessível na interface. Falhas de arquivo, inventário ou vínculo têm
+mensagens próprias, sem contornar a validação.
+
+```bash
+npm test
+npm run build
+npm run test:e2e
+# Opcional: salvar evidências fora de /tmp/mapa-br-official
+MAPA_BR_EVIDENCE_DIR=/caminho/evidencias npm run test:e2e -- official.spec.ts
+```
+
+A integração oficial verifica 27 UFs, 295 municípios, 1.004 setores, histórico,
+retorno, resposta atrasada, ausência de chamadas aos dados simulados, mensagens
+de indisponibilidade, viewport móvel e sequência das requisições na rede.
