@@ -1,0 +1,171 @@
+{
+  "kind": "source_audit_not_ingestion_profile",
+  "status": "blocked",
+  "checked_at": "2026-10-26T07:47:39.877879+00:00",
+  "census_period": "2022",
+  "income_release_file_date": "20260508",
+  "cd_uf": "42",
+  "sources": {
+    "setores": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/Agregados_por_setores_renda_responsavel_BR_20260508_csv.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/Agregados_por_setores_renda_responsavel_BR_20260508_csv.zip",
+      "bytes": 9370011,
+      "sha256_local": "141c83e7635674e7e2c941e55f98811e538fcbf2e1e1125b0aa7892c260f4a23",
+      "downloaded_at": "2026-10-26T07:36:28.070076+00:00"
+    },
+    "municipios": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/Agregados_por_municipios_renda_responsavel_BR_20260508_csv.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/Agregados_por_municipios_renda_responsavel_BR_20260508_csv.zip",
+      "bytes": 168582,
+      "sha256_local": "ad52b9e9fe7bf67d45250799d6926e4f13752cfddc5f0f96a7147f9b5fb909fe",
+      "downloaded_at": "2026-10-26T07:38:53.744876+00:00"
+    },
+    "dicionario_renda": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/dicionario_de_dados_renda_responsavel_20260508.xlsx",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios_Rendimento_do_Responsavel/dicionario_de_dados_renda_responsavel_20260508.xlsx",
+      "bytes": 10197,
+      "sha256_local": "fea6e2b2439eeb167c6fa9c136ed7cb13ebcb06f4c875d634e3e2578c668a48d",
+      "downloaded_at": "2026-10-26T07:33:01.978111+00:00"
+    },
+    "basico": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip",
+      "bytes": 15418417,
+      "sha256_local": "ec04624286233d699ebe69c7b9625744a1cfdfc8352126f30245bdef5e9bdc63",
+      "downloaded_at": "2026-10-26T07:36:27.393874+00:00"
+    },
+    "dicionario_basico": {
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "url_final": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "bytes": 118369,
+      "sha256_local": "0b8aedece57f6125d785b6aa2234cfd587e92dfb6ce5ca6ace8c67f140831344",
+      "downloaded_at": "2026-10-26T07:33:01.715298+00:00"
+    },
+    "pib_sc_2021": {
+      "url": "https://apisidra.ibge.gov.br/values/t/5938/n6/in%20n3%2042/v/37/p/2021?formato=json",
+      "url_final": "https://apisidra.ibge.gov.br/values/t/5938/n6/in%20n3%2042/v/37/p/2021?formato=json",
+      "bytes": 58519,
+      "sha256_local": "be0ad494f0ca15d89b7b3e822a31321d229505dfb5430b302fd88da95f4d50e0",
+      "downloaded_at": "2026-10-26T07:37:45.639998+00:00"
+    }
+  },
+  "inventory": {
+    "municipios": 295,
+    "setores_basico": 16736,
+    "setores_renda": 16435,
+    "populacao_basico": 7610361,
+    "domicilios_fisicos_basico": 3475161,
+    "setores_basico_sem_renda": 301,
+    "setores_renda_sem_basico": 0,
+    "setores_sem_linha_renda_com_populacao_positiva": 0,
+    "populacao_em_setores_sem_linha_renda": 0,
+    "domicilios_em_setores_sem_linha_renda": 230,
+    "setores_situacao_9": 38,
+    "populacao_situacao_9": 0,
+    "domicilios_situacao_9": 0,
+    "setores_cd_bairro_ponto": 6645,
+    "pib_ano": "2021",
+    "pib_municipios": 295,
+    "pib_extras_filtrados": [],
+    "pib_municipios_faltantes": [],
+    "inventario_limite": "Comparação dos CSVs publicados; completude frente à malha não verificada"
+  },
+  "blockers": [
+    "V06004 refere-se a responsáveis COM rendimentos; seu denominador exato não foi identificado",
+    "Ponderar V06004 por V06001 diverge do agregado municipal oficial",
+    "Inventários básico/renda diferem; não inferir zero ou X em linhas ausentes",
+    "Bairro ausente '.' e situação 9 exigem adaptação explícita da release"
+  ],
+  "dictionary_definitions": {
+    "V06001": "Pessoas responsáveis em domicílios particulares permanentes ocupados",
+    "V06004": "Valor do rendimento nominal médio mensal das pessoas responsáveis com rendimentos por domicílios particulares permanentes ocupados"
+  },
+  "method": {
+    "eligibility": "All published sector rows for municipality have disclosed V06001 and V06004; sum of sector V06001 exactly equals published municipal V06001; total weight is positive.",
+    "formula": "sum(Decimal(sector.V06004) * Decimal(sector.V06001)) / sum(Decimal(sector.V06001))",
+    "comparison": "Calculated weighted mean minus published municipal V06004.",
+    "arithmetic": "Exact Decimal numerator and integer denominator; division uses Python Decimal default precision 28; no intermediate monetary quantization.",
+    "interpretation": "Observed discrepancies disallow assuming that V06001 reproduces the weighting universe of V06004. This comparison alone does not establish causality or the exact correct denominator.",
+    "inventory_limit": "Eligibility covers the published income CSV rows, not a separate verification of completeness against the basic or geographic sector inventory."
+  },
+  "summary": {
+    "sc_sector_income_rows": 16435,
+    "sc_municipalities_with_sector_rows": 295,
+    "sc_sector_rows_all_six_income_variables_X": 296,
+    "sc_sector_rows_not_all_six_X": 16139,
+    "eligible_municipalities": 178,
+    "excluded_municipalities_by_reason": {
+      "sector_count_or_mean_suppressed_or_absent": 117
+    },
+    "eligible_with_absolute_difference_over_0_01": 178,
+    "eligible_with_absolute_difference_over_0_05": 178,
+    "maximum_absolute_difference": "74.371698228466707391569945",
+    "maximum_difference_cd_mun": "4209854"
+  },
+  "examples": [
+    {
+      "cd_mun": "4209854",
+      "nm_mun": "Lindóia do Sul",
+      "sector_rows": 12,
+      "sector_rows_with_V06001_and_V06004_known": 12,
+      "sector_rows_with_V06001_or_V06004_X": 0,
+      "sum_sector_V06001": "1637",
+      "published_municipal_V06001": "1637",
+      "sum_sector_V06004_times_V06001": "6403455.68",
+      "mean_weighted_by_V06001": "3911.701698228466707391569945",
+      "published_municipal_V06004": "3837.33",
+      "difference_weighted_minus_published": "74.371698228466707391569945"
+    },
+    {
+      "cd_mun": "4212700",
+      "nm_mun": "Petrolândia",
+      "sector_rows": 16,
+      "sector_rows_with_V06001_and_V06004_known": 16,
+      "sector_rows_with_V06001_or_V06004_X": 0,
+      "sum_sector_V06001": "2443",
+      "published_municipal_V06001": "2443",
+      "sum_sector_V06004_times_V06001": "11085553.30",
+      "mean_weighted_by_V06001": "4537.680433892754809660253786",
+      "published_municipal_V06004": "4611.55",
+      "difference_weighted_minus_published": "-73.869566107245190339746214"
+    }
+  ],
+  "all_comparisons_file": "data/raw/verification_2022/renda_comparisons_sc.json (local, ignorado pelo Git)",
+  "not_an_ingestion_output": true,
+  "reproduce_command": "python3 etl_pipeline/audits/verify_2022_sc.py",
+  "source_formats": {
+    "basico": {
+      "member": "Agregados_por_setores_basico_BR.csv",
+      "encoding_read_strict": "cp1252",
+      "delimiter": ";",
+      "observed_columns": {
+        "populacao": "v0001",
+        "domicilios_fisicos": "v0002",
+        "codigo_situacao": "CD_SIT",
+        "nome_situacao": "SITUACAO",
+        "bairro": "CD_BAIRRO"
+      }
+    },
+    "renda_setorial": {
+      "member": "Agregados_por_setores_renda_responsavel_BR.csv",
+      "encoding_read_strict": "utf-8-sig",
+      "delimiter": ";",
+      "decimal_separator": "."
+    },
+    "renda_municipal": {
+      "member": "Agregados_por_municipios_renda_responsavel_BR.csv",
+      "encoding_read_strict": "cp1252",
+      "delimiter": ";",
+      "decimal_separator": ","
+    }
+  },
+  "renda_denominator_verified": null,
+  "dictionary_review": "Inspeção manual das planilhas oficiais; o utilitário reproduz inventários e comparação numérica, não certifica a semântica das variáveis.",
+  "network_observations": {
+    "date": "2026-10-26",
+    "ftp_ibge": "HTTP 200",
+    "sidra": "HTTP 200",
+    "malhas_service": "HTTP 503; upstream connection timeout; nenhuma geometria publicada",
+    "ibge_portal": "CONNECT 403; documentação adicional do portal indisponível nesta sessão"
+  }
+}

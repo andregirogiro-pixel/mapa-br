@@ -5,6 +5,12 @@ validado do IBGE. Faça uma cópia e preencha a partir do dicionário da publica
 exata. Os anos exemplificados também devem ser conferidos. Não use nomes V001/
 V0001 por memória nem combine massa, média e denominador de universos distintos.
 
+`ibge_2022_sources.audit.json` registra fontes baixadas, mapeamentos observados e
+bloqueios da [auditoria de 2022](../IBGE_2022_AUDIT.md); não é um perfil de
+ingestão. Na edição de renda 20260508, V06004 é média dos responsáveis **com
+rendimentos**. Não mapear V06001 como seu peso sem comprovar o universo: essa
+ponderação já divergiu do agregado municipal oficial na verificação de SC.
+
 O adaptador recebe arquivos locais, já consolidados por setor. Se o IBGE publicar
 território, demografia e renda em arquivos separados, faça antes o join 1:1 pela
 chave textual verificada, sem substituir ausências por zero. Não há download,

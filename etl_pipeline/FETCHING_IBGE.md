@@ -5,18 +5,30 @@ biblioteca padrão. O destino padrão é `data/processed_real`, preservando a de
 
 ## Estado da validação
 
-A execução com a publicação oficial de 2022 **ainda não foi validada**. O proxy
-do ambiente negou as requisições aos três hosts do IBGE com 403. Nenhum dado
-2010 foi utilizado para simular uma publicação de 2022. O template de fontes
-não é executável sem preencher URLs e colunas conferidas no dicionário oficial.
-Não há promessa de download em 20 segundos nem de contagem de municípios/setores
-sem conferir o inventário da edição efetivamente utilizada.
+Na tentativa de **2026-10-26**, FTP e SIDRA responderam com sucesso. Foram
+baixados os ZIPs e dicionários de 2022, a renda municipal oficial para comparação
+e o PIB de 2021 dos 295 municípios de SC. TLS e proxy permaneceram habilitados.
+A API de malhas retornou 503 por falha de conexão upstream; geometrias não foram
+publicadas. O portal www.ibge.gov.br ainda retornou 403 nesta sessão.
 
-Foram acrescentados ao rascunho da rede, preservando os presets existentes:
-`ftp.ibge.gov.br`, `apisidra.ibge.gov.br`, `servicodados.ibge.gov.br`.
-Revisar/salvar e publicar o ambiente aplica a configuração; salvar o rascunho
-sozinho não libera a execução corrente. TLS, proxy e verificação de certificados
-permanecem habilitados. Não contornar a política com proxies alternativos.
+**A ingestão completa ainda não está validada e não gerou JSONs reais.** O
+dicionário de renda distingue a contagem total de responsáveis (V06001) da
+média dos responsáveis com rendimentos (V06004). Usar V06001 como peso não
+reproduz o agregado municipal oficial, mesmo nos municípios elegíveis sem
+sigilo e com totais de responsáveis reconciliados. Há também diferenças entre
+os inventários de setores básico/renda e marcadores territoriais não tratados.
+Veja [a auditoria com fontes e números](IBGE_2022_AUDIT.md).
+
+```bash
+python3 etl_pipeline/audits/verify_2022_sc.py
+```
+
+Esse comando baixa/reutiliza o cache e gera diagnósticos em
+`data/raw/verification_2022/`. Sua conclusão bem-sucedida significa que a
+auditoria terminou; o relatório mantém `status: blocked` para a ingestão.
+`manifests/ibge_2022_sources.audit.json` é evidência compacta versionada,
+**não** um perfil executável. O template de fontes continua incompleto enquanto
+o denominador correto não for demonstrado. Nenhum dado de 2010 foi misturado.
 
 ## Dois manifestos, duas responsabilidades
 
@@ -117,7 +129,8 @@ A API de Malhas v3 é chamada para país, regiões, UFs e municípios por UF. JS
 são validados como FeatureCollection poligonal antes de serem gravados em
 frontend/public/geo. sources.json conserva URLs, digests e período solicitado.
 Não se considera automaticamente provada a compatibilidade com os setores de
-2022. Esses endpoints/períodos ainda dependem de validação online.
+2022. Na tentativa de 2026-10-26 o host retornou 503, inclusive para documentação
+e consultas simples. Não foi possível verificar esses endpoints/períodos online.
 
 Esse passo **não** baixa malha de setores nem dissolve bairros. A camada de nível
 5 continua exigindo uma malha setorial da mesma edição, a ser verificada. O

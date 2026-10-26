@@ -4,8 +4,9 @@ Base de uma plataforma analítica do Brasil: País → Região → UF → Munic�
 Bairro/Setor. Há um frontend React + Vite com navegação dos cinco níveis,
 cartograma de UFs, painel analítico e um gerador offline de demonstração.
 A API e a renderização de geometrias reais continuam pendentes. O automatizador
-03 prepara o download por perfil explícito; a publicação oficial de 2022 ainda
-não foi validada online neste ambiente.
+03 prepara o download por perfil explícito. Fontes oficiais de 2022 já foram
+baixadas e auditadas para SC; a consolidação da renda continua bloqueada por
+incompatibilidade do peso proposto com a média publicada.
 O adaptador `02_ingest_ibge_real.py` processa arquivos locais via manifesto explícito.
 
 ## Gerar e testar
@@ -204,5 +205,17 @@ Use --no-download-geojson para dispensar as malhas e --stage-only para revisar o
 staging antes da ingestão. O destino deve estar vazio; as fixtures são preservadas.
 Sigilo e erros não viram zeros ou ajustes artificiais. Diferenças substantivas
 em nomes e municípios censitários sem PIB interrompem o processo com relatório.
-A rede cloud retornou 403 para os hosts do IBGE; o download oficial permanece
-pendente de liberação. Leia [o guia de execução e limitações](etl_pipeline/FETCHING_IBGE.md).
+Na nova tentativa, FTP e SIDRA responderam com sucesso. O recorte básico de SC
+tem 295 municípios e 16.736 setores; a tabela de renda tem 16.435 setores.
+V06001 não pode ser assumido como peso de V06004: a média é dos responsáveis
+**com rendimentos**, e a ponderação proposta diverge do agregado municipal oficial.
+A API de malhas retornou 503. Nenhuma release JSON real foi publicada.
+
+Para reproduzir a verificação, sem alterar as fixtures:
+
+```bash
+python3 etl_pipeline/audits/verify_2022_sc.py
+```
+
+Leia [a auditoria das fontes de 2022](etl_pipeline/IBGE_2022_AUDIT.md) e
+[o guia de execução e limitações](etl_pipeline/FETCHING_IBGE.md).

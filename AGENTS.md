@@ -252,9 +252,26 @@ segunda raiz /data paralela à árvore já servida pelo Vite.
 
 ## Download e staging 2022 (03)
 
-- Ler etl_pipeline/FETCHING_IBGE.md. O usuário escolheu Censo 2022; não usar FTP,
-  variáveis ou dicionário de 2010 como se fossem 2022. O template de fontes
-  ainda precisa de URLs/colunas verificadas; o acesso oficial retornou 403 no proxy.
+- Ler etl_pipeline/FETCHING_IBGE.md e etl_pipeline/IBGE_2022_AUDIT.md. O usuário
+  escolheu Censo 2022; não usar FTP, variáveis ou dicionário de 2010 como 2022.
+  Na tentativa de 2026-10-26, FTP/SIDRA responderam 200 e malhas 503. Não repetir
+  que todo acesso IBGE continua bloqueado por 403. O perfil executável continua
+  pendente: o bloqueio principal agora é estatístico, não o download do Censo.
+- Dicionário básico 20260520: v0001 = pessoas, v0002 = domicílios físicos totais.
+  Atenção à caixa real dos cabeçalhos CSV. Renda 20260508: V06001 = responsáveis
+  em DPPO; V06004 = média dos responsáveis COM rendimentos. Não atribuir V06001
+  como peso de V06004: a comparação com agregados municipais oficiais divergiu.
+  Nenhum dos dois dicionários conferidos oferece explicitamente a contagem dos
+  responsáveis com rendimentos ou massa do mesmo universo.
+- O utilitário audits/verify_2022_sc.py é diagnóstico, não ingestão. Os relatórios
+  completos e dados baixados ficam em data/raw, ignorados pelo Git. O catálogo
+  manifests/ibge_2022_sources.audit.json registra evidências e bloqueios; não é
+  argumento válido de --source-profile. Não publicar médias desse mapeamento.
+- Inventário observado de SC: básico 16.736 setores; renda 16.435. As 301 linhas
+  ausentes da renda têm população zero e 230 domicílios físicos no total. Não
+  excluir esses domicílios nem inventar X para preencher o join. O básico usa
+  ponto literal em bairros ausentes e tem 38 setores CD_SIT=9; ambos precisam
+  de política explícita da release antes de adaptar, sem converter 9 em rural.
 - ibge_padrao.json é contrato do CSV preparado, não dicionário bruto. Perfil de
   fontes separado declara cada tabela, período, URL/diretório, membro ZIP,
   encoding, delimitador, decimal e mapeamentos. Domicílios devem ser total físico.
