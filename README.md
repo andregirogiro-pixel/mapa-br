@@ -244,3 +244,11 @@ usa renda do responsável com aviso e legenda próprios. O seletor mantém PIB e
 volta a usá-lo ao retornar à UF. PIB dos bairros continua null. UFs sem detalhe
 continuam acessíveis por seus resumos, sem requisições municipais inexistentes.
 O Vite serve tudo localmente: não criar symlink em frontend/public/data.
+
+## Sidecar TSE
+
+O [contrato eleitoral municipal](frontend/TSE_SIDECAR.md) fica separado do Censo
+em `tse/{cd_uf}/{cd_mun}.json`. A interface tem carga opcional, pontos de locais
+de votação e painel cruzado por id_agregacao. Valida votos, cobertura ponderada
+pelos aptos, referências e proveniência. Não altera os indicadores socioeconômicos.
+Ainda não há ingestão/geocodificação real TSE; as fixtures eleitorais são de testes.

@@ -4,6 +4,9 @@ import type { BrasilPayload, UfPayload, MunicipioPayload } from '../types/contra
 
 export interface LoadedData { index: BrasilPayload; uf?: UfPayload; municipio?: MunicipioPayload }
 interface Pending { controller: AbortController; users: number }
+export class DataHttpError extends Error {
+  constructor(readonly status: number) { super(`Não foi possível carregar os dados (HTTP ${status}).`); }
+}
 const aborted = () => new DOMException('Carregamento cancelado', 'AbortError');
 
 export class DataLoader {
@@ -28,8 +31,8 @@ export class DataLoader {
     if (!promise) {
       const entry: Pending = { controller: new AbortController(), users: 0 };
       this.pending.set(url, entry);
-      promise = this.fetcher(url, { signal: entry.controller.signal }).then(async response => {
-        if (!response.ok) throw new Error(`Não foi possível carregar os dados (HTTP ${response.status}).`);
+      promise = this.fetcher(url, { signal: entry.controller.signal, headers: { Accept: 'application/json' } }).then(async response => {
+        if (!response.ok) throw new DataHttpError(response.status);
         return parse(await response.json());
       });
       this.cache.set(url, promise);

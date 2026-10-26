@@ -3,16 +3,18 @@ import maplibregl, { type Map as GLMap, type GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Navigation } from '../state/navigation';
 import type { DataLoader, LoadedData } from '../services/dataLoader';
+import { pontosTse } from '../services/tseLoader';
+import type { MunicipioTse } from '../types/tseContract';
 import { loadDemoGeometry, type DemoGeometry } from '../services/demoGeometry';
 import { calcularBoundingBox, COLOR_SIGILO_OU_AUSENTE, COLOR_DESTAQUE_SELECIONADO, formatarValorIndicador, METRICAS_CATALOGO } from '../lib/geoStats';
 import type { MetricaAtiva } from '../store/useGeoStore';
 
 export interface MapRow { id: string; name: string; nav: Navigation; fill: string; sigilo: boolean; coverage: number | null; value: string }
-interface Props { loader: DataLoader; data?: LoadedData; nav: Navigation; rows: MapRow[]; metric: MetricaAtiva; select: (nav: Navigation) => void }
+interface Props { tse?: MunicipioTse | null; loader: DataLoader; data?: LoadedData; nav: Navigation; rows: MapRow[]; metric: MetricaAtiva; select: (nav: Navigation) => void }
 const kinds = ['ufs', 'municipios', 'setores'] as const;
 const fields = { ufs: 'cd_uf', municipios: 'cd_mun', setores: 'cd_setor' };
 function kindFor(geo: DemoGeometry) { return geo.field === 'cd_setor' ? 'setores' : geo.field === 'cd_mun' ? 'municipios' : 'ufs'; }
-export function MapViewport({ loader, data, nav, rows, metric, select }: Props) {
+export function MapViewport({ loader, data, nav, rows, metric, select, tse }: Props) {
   const container = useRef<HTMLDivElement>(null), map = useRef<GLMap | null>(null);
   const latest = useRef({ rows, select, nav, metric }); latest.current = { rows, select, nav, metric };
   const active = useRef<DemoGeometry | undefined>(undefined);
@@ -67,6 +69,7 @@ export function MapViewport({ loader, data, nav, rows, metric, select }: Props) 
           'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 4, 2],
         } });
         instance.on('click', `${kind}-fill`, event => {
+          if (instance.queryRenderedFeatures(event.point, { layers: ['tse-locais'] }).length) return;
           const geo = active.current;
           if (!geo || kindFor(geo) !== kind) return;
           const id = event.features?.[0]?.properties?.[geo.field];
@@ -78,6 +81,7 @@ export function MapViewport({ loader, data, nav, rows, metric, select }: Props) 
             { level: 'municipio', cd_uf: nav.cd_uf, cd_mun: nav.cd_mun } : row.nav);
         });
         instance.on('mousemove', `${kind}-fill`, event => {
+          if (instance.queryRenderedFeatures(event.point, { layers: ['tse-locais'] }).length) return;
           const geo = active.current;
           if (!geo || kindFor(geo) !== kind) return;
           const id = event.features?.[0]?.properties?.[geo.field];
@@ -88,6 +92,19 @@ export function MapViewport({ loader, data, nav, rows, metric, select }: Props) 
         });
         instance.on('mouseleave', `${kind}-fill`, () => { instance.getCanvas().style.cursor = ''; setHover(''); });
       }
+      instance.addSource('tse-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'id_local' });
+      instance.addLayer({ id: 'tse-locais', type: 'circle', source: 'tse-source', paint: {
+        'circle-radius': 7, 'circle-color': ['case', ['boolean', ['get', 'alocado'], false], '#38bdf8', '#94a3b8'],
+        'circle-stroke-color': ['case', ['boolean', ['get', 'selected'], false], COLOR_DESTAQUE_SELECIONADO, '#ffffff'],
+        'circle-stroke-width': ['case', ['boolean', ['get', 'selected'], false], 4, 2],
+      } });
+      instance.on('mousemove', 'tse-locais', event => {
+        const props = event.features?.[0]?.properties;
+        if (!props) return;
+        instance.getCanvas().style.cursor = 'pointer';
+        setHover(`${props.nm_local} · ${props.id_local} · aptos: ${props.eleitores_aptos} · votos válidos: ${props.votos_validos} · ${props.alocado ? 'alocação declarada em setor' : 'sem alocação em setor'}`);
+      });
+      instance.on('mouseleave', 'tse-locais', () => { instance.getCanvas().style.cursor = ''; setHover(''); });
       setMapReady(true);
     });
     const observer = new ResizeObserver(() => instance.resize()); observer.observe(container.current);
@@ -112,6 +129,10 @@ export function MapViewport({ loader, data, nav, rows, metric, select }: Props) 
   useEffect(() => { if (map.current && geometry && mapReady) update(map.current, geometry); setHover(''); }, [rows, nav, geometry, mapReady]);
   const selected = nav.level === 'bairro' ? nav.id_agregacao : null;
   useEffect(() => {
+    const source = mapReady ? map.current?.getSource('tse-source') as GeoJSONSource | undefined : undefined;
+    source?.setData(pontosTse(tse, selected));
+  }, [tse, selected, mapReady]);
+  useEffect(() => {
     const instance = map.current;
     if (!instance || !geometry || !mapReady) return;
     const features = selected ? geometry.collection.features.filter(f => geometry.rowByFeature.get(f.properties![geometry.field] as string) === selected) : geometry.collection.features;
@@ -120,6 +141,7 @@ export function MapViewport({ loader, data, nav, rows, metric, select }: Props) 
   }, [geometry, selected, mapReady]);
   return <div className="demo-map-wrap">
     <p className="demo-map-label">GEOMETRIAS SINTÉTICAS · SEM LIMITES OFICIAIS · contorno âmbar: grupo com sigilo · rosa: seleção</p>
+    {tse && <p className="demo-map-label">● Pontos TSE: ciano = alocação declarada; cinza = não alocado. Votos do local, não da população residente.</p>}
     <div ref={container} className="demo-map" data-testid="demo-map" data-ready={mapReady && sourceReady && !!geometry} aria-label="Mapa de polígonos sintéticos" />
     {error ? <p role="alert">{error}</p> : !sourceReady ? <p role="status">Carregando malha local…</p> : null}
     <p className="demo-map-hover" aria-live="polite">{hover || 'Clique nos polígonos ou use os botões de navegação abaixo.'}</p>

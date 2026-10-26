@@ -1,3 +1,4 @@
+import { tseFixture } from '../src/test/tseFixture';
 import { test, expect } from '@playwright/test';
 import sc from '../../data/processed/uf/42.json' with { type: 'json' };
 
@@ -120,4 +121,53 @@ test('PIB é preservado no seletor e usa renda na pintura intramunicipal com nav
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Santa Catarina');
   await expect(page.getByText(/O IBGE não calcula PIB para bairros/)).toHaveCount(0);
   await expect(panel.getByText('PIB por habitante · quantis')).toBeVisible();
+});
+
+
+test('sidecar TSE opcional: pontos separados, agrupamento e limpeza ao trocar UF', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/data/processed/tse/42/4205407.json', route => { requests++; return route.fulfill({ json: tseFixture() }); });
+  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
+  expect(requests).toBe(0);
+  await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
+  const panel = page.getByRole('region', { name: 'Indicadores eleitorais' });
+  await expect(panel).toContainText('TSE · SIMULAÇÃO');
+  await expect(panel).toContainText('66,67%');
+  const map = page.getByTestId('demo-map');
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  await page.screenshot({ path: '/tmp/mapa-br-tse-points.png', fullPage: true });
+  const box = await map.boundingBox();
+  await expect.poll(async () => {
+    await map.locator('canvas').hover({ position: { x: 10, y: 10 } });
+    await map.locator('canvas').hover({ position: { x: box!.width * .29, y: box!.height * .28 } });
+    return page.getByText(/Escola sintética A/).count();
+  }).toBe(1);
+  await page.getByRole('region', { name: 'Exploração territorial' }).getByRole('button', { name: /Área sem bairro oficial/ }).click();
+  await expect(panel).toContainText('Locais / seções no grupo');
+  await expect(panel).toContainText('100 / 80 / 20');
+  expect(requests).toBe(1);
+  await page.getByRole('combobox', { name: 'Selecionar UF' }).selectOption('35');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('São Paulo');
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByText(/Pontos TSE: ciano/)).toHaveCount(0);
+});
+
+test('sidecar ausente retorna indisponibilidade, preservando o Censo', async ({ page }) => {
+  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
+  await expect(page.getByText('Dados eleitorais não disponíveis para este município.')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
+});
+
+
+test('erro de proveniência do sidecar não contamina a camada do Censo', async ({ page }) => {
+  const payload = tseFixture(); payload.metadata.tipo_dados = 'fonte_tse_declarada';
+  await page.route('**/data/processed/tse/42/4205407.json', route => route.fulfill({ json: payload }));
+  await page.goto('/?level=municipio&cd_uf=42&cd_mun=4205407');
+  await page.getByRole('checkbox', { name: 'Exibir locais de votação (TSE)' }).check();
+  await expect(page.getByText(/Não foi possível validar\/carregar o sidecar TSE/)).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
+  await expect(page.getByTestId('demo-map')).toHaveAttribute('data-ready', 'true');
+  await expect(page.getByText(/Pontos TSE: ciano/)).toHaveCount(0);
 });

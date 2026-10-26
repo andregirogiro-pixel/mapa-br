@@ -20,7 +20,7 @@ export default defineConfig({
         const matchedPrefix = [`${publicBase.replace(/\/$/, '')}${prefix}`, prefix].find(p => pathname.startsWith(p));
         if (!matchedPrefix) return next();
         const relative = pathname.slice(matchedPrefix.length);
-        if (!/^(brasil\.json|uf\/[0-9]{2}\.json|municipios\/[0-9]{2}\/[0-9]{7}\.json)$/.test(relative)) {
+        if (!/^(brasil\.json|uf\/[0-9]{2}\.json|municipios\/[0-9]{2}\/[0-9]{7}\.json|tse\/[0-9]{2}\/[0-9]{7}\.json)$/.test(relative)) {
           res.statusCode = 404; res.end(); return;
         }
         try {

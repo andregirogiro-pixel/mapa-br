@@ -166,3 +166,18 @@ a carga exige dados_disponiveis true e arquivo preenchido. O Vite já serve a
 Após atualizar dependências: `npm ci`, `npm run dev`. Para regenerar fixtures e
 geometrias, execute os dois geradores Python na raiz; os caminhos Vite existentes
 já servem a árvore particionada e funcionam em subdiretórios de publicação.
+
+## Sidecar eleitoral opcional
+
+O [contrato TSE](TSE_SIDECAR.md) usa `types/tseContract.ts`, sem modificar os
+schemas socioeconômicos. A opção TSE aparece no município; nenhum arquivo
+TSE é solicitado inicialmente. O payload opcional fica na mesma árvore em
+`tse/{cd_uf}/{cd_mun}.json`. O middleware e o build preservam essa partição.
+
+Há validação cruzada de votos, proporções, locais, seções, cobertura ponderada,
+ponte setor/grupo e proveniência. A camada circle usa pontos, mantendo os
+indicadores do Censo nos polígonos. O painel seleciona o agregado do bairro por
+id_agregacao e mostra o aviso do recorte eleitoral. Ausência de sidecar retorna
+indisponibilidade, não votos zero. Não há ingestão TSE real neste passo; dados
+sintéticos eleitorais existem apenas nos testes. O produtor Python futuro deverá
+usar Decimal/ROUND_HALF_EVEN e demonstrar contenção na malha compatível.

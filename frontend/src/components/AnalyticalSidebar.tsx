@@ -1,3 +1,4 @@
+import { TsePanel, type TseState } from './TsePanel';
 import type { LoadedData } from '../services/dataLoader';
 import type { Navigation } from '../state/navigation';
 import type { IndicadoresMacroECenso, BairroDetalhe } from '../types/contract';
@@ -44,12 +45,13 @@ interface Props {
   data?: LoadedData; values: IndicadoresMacroECenso | null | undefined; bairro?: BairroDetalhe;
   title?: string; nav: Navigation; demo: boolean; rows: Row[]; ranking: Row[]; metric: Metric;
   search: string; setSearch: (search: string) => void; navigate: (nav: Navigation) => void;
-  resourceStatus: 'loading' | 'error' | 'ready'; max: number;
+  tse: TseState; resourceStatus: 'loading' | 'error' | 'ready'; max: number;
 }
 export function AnalyticalSidebar({ data, values, bairro, title, nav, demo, rows, ranking, metric,
-  search, setSearch, navigate, resourceStatus, max }: Props) {
+  search, setSearch, navigate, resourceStatus, max, tse }: Props) {
   return <aside className="analytics" aria-label="Painel analítico">
         <div className="section-heading"><div><span className="eyebrow">LEITURA DO TERRITÓRIO</span><h2>{title ?? 'Indicadores'}</h2></div><span className="data-tag">{demo ? 'SIMULAÇÃO' : 'RECORTE'}</span></div>
+        <TsePanel state={tse} group={nav.level === 'bairro' ? nav.id_agregacao : null} />
         {data && values ? <>
           {bairro && <div className="origin-badge">{bairro.origem_malha === 'ibge_bairro_oficial' ? 'Bairro Oficial IBGE' : 'Agrupamento de Setores por Subdistrito/Distrito'}</div>}
           <div className="indicator-grid">

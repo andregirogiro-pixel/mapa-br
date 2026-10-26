@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { DataLoader } from './services/dataLoader';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchMunicipioTse } from './services/tseLoader';
+import type { TseState } from './components/TsePanel';
 import { AnalyticalSidebar } from './components/AnalyticalSidebar';
 import { METRICAS_CATALOGO, CHOROPLETH_COLORS as palette, criarEscalaCoropletica, metricaDoMapa, formatarValorIndicador as format, extrairValorMetrica as measure } from './lib/geoStats';
 import type { TerritoryRow as Row } from './lib/geoStats';
@@ -52,6 +54,7 @@ function Explorer({ loader }: { loader: DataLoader }) {
   const { navigation: nav, routeError, navigate, metrica: metric, setMetrica,
     registrarRegioes, voltarNivel } = useGeoStore(state => state);
   const { resource, index, retry } = useData(loader, nav);
+  const [showTse, setShowTse] = useState(false);
   useEffect(() => {
     if (index) registrarRegioes(index.ufs.map(uf => uf.metadata));
   }, [index, registrarRegioes]);
@@ -62,6 +65,11 @@ function Explorer({ loader }: { loader: DataLoader }) {
   const region = nav.level === 'regiao' ? index?.regioes.find(r => r.cd_regiao === nav.cd_regiao) :
     index?.regioes.find(r => r.cd_regiao === ufEntry?.metadata.cd_regiao);
   const municipality = data?.municipio?.municipio;
+  const election = useQuery({ queryKey: ['tse', loader.indexUrl, municipality?.cd_mun],
+    queryFn: ({ signal }) => fetchMunicipioTse(loader, data!.municipio!, signal), enabled: showTse && !!data?.municipio, retry: false });
+  const tseState: TseState = { enabled: showTse && !!data?.municipio, status: election.isError ? 'error' : election.isPending ? 'loading' : 'ready',
+    payload: showTse && data?.municipio && election.isSuccess ? election.data : undefined,
+    error: 'Não foi possível validar/carregar o sidecar TSE. Confira o contrato, o recorte e a proveniência.' };
   const bairro = nav.level === 'bairro' ? municipality?.bairros.find(b => b.id_agregacao === nav.id_agregacao) : undefined;
   const reverse = useMemo(() => municipality ? buildSectorToGroupMap(municipality.bairros) : undefined, [municipality]);
   const title = nav.level === 'pais' ? 'Brasil' : nav.level === 'regiao' ? region?.nm_regiao :
@@ -118,11 +126,12 @@ function Explorer({ loader }: { loader: DataLoader }) {
           <span className="level-tag">{({ pais: '01', regiao: '02', uf: '03', municipio: '04', bairro: '05' })[nav.level]} / 05</span></div>
         <div className="map-controls"><label>Colorir por <select value={metric} onChange={e => setMetrica(e.target.value as Metric)}>
           {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}{!METRICAS_CATALOGO[key as Metric].disponivelEmBairro ? ' (Até Município)' : ''}</option>)}</select></label></div>
+        {municipality && <label className="tse-toggle"><input type="checkbox" checked={showTse} onChange={e => setShowTse(e.target.checked)} /> Exibir locais de votação (TSE)</label>}
         <p className="muted">{METRICAS_CATALOGO[metric].descricao}</p>
         {metric !== mapMetric && <p role="status" className="metric-fallback">O IBGE não calcula PIB para bairros/setores. O mapa e a comparação intramunicipal usam Renda do responsável. A seleção de PIB será retomada ao voltar à UF.</p>}
         {index && cartogram && <div className="region-pills" aria-label="Regiões">{index.regioes.map(r => <button key={r.cd_regiao}
           aria-pressed={nav.level === 'regiao' && nav.cd_regiao === r.cd_regiao} onClick={() => navigate({ level: 'regiao', cd_regiao: r.cd_regiao })}>{r.nm_regiao}</button>)}</div>}
-        {index && demo && <Suspense fallback={<p role="status">Preparando mapa local…</p>}><MapViewport loader={loader} data={data} nav={nav} select={navigate} metric={mapMetric}
+        {index && demo && <Suspense fallback={<p role="status">Preparando mapa local…</p>}><MapViewport loader={loader} data={data} nav={nav} select={navigate} metric={mapMetric} tse={tseState.payload}
           rows={(rows.length ? rows : ufEntry ? [{ id: ufEntry.metadata.cd_uf, name: ufEntry.metadata.nm_uf,
             values: ufEntry.resumo_uf, nav: { level: 'uf' as const, cd_uf: ufEntry.metadata.cd_uf } }] : []).map(r => ({
               id: r.id, name: r.name, nav: r.nav, fill: color(measure(r.values, mapMetric)),
@@ -148,7 +157,7 @@ function Explorer({ loader }: { loader: DataLoader }) {
       </section>
       <AnalyticalSidebar data={data} values={values} bairro={bairro} title={title} nav={nav} demo={demo}
         rows={rows} ranking={ranking} metric={mapMetric} search={search} setSearch={setSearch}
-        navigate={navigate} resourceStatus={resource.status} max={max ?? 0} />
+        navigate={navigate} resourceStatus={resource.status} max={max ?? 0} tse={tseState} />
     </main><footer className="page-footer"><span>MAPA BR / TERRITÓRIO EM PERSPECTIVA</span><span>País → Região → UF → Município → Bairro / Setor</span></footer>
   </div>;
 }

@@ -334,3 +334,32 @@ segunda raiz /data paralela à árvore já servida pelo Vite.
 - AnalyticalSidebar concentra KPIs e auditoria, preservando totais desconhecidos
   como ausência e valores exatos como strings. UFs sem detalhe permanecem
   selecionáveis pelo resumo; não desabilitar acesso a essas 25 UFs.
+
+## Sidecar TSE
+
+- Ler frontend/TSE_SIDECAR.md. tseContract.ts é separado de contract.ts: não
+  acrescentar votos aos 19 indicadores/bairros do Censo. Servir arquivos por
+  tse/{cd_uf}/{cd_mun}.json na raiz dos dados; uma eleição/cargo/turno por release.
+- IDs TSE são strings canônicas: município5, zona4, local4 e id_local composto.
+  Nunca inferir município IBGE a partir de código TSE, nome de bairro ou coerção.
+- Validar votos, proporções HALF_EVEN/4casas e somas com BigInt. Denominador zero
+  implica null. Reconciliar resumo, todos os locais, referências e grupos/seções;
+  cobertura alocada pondera aptos, não quantidade de locais. Não incluir pleitos
+  com múltiplos votos por cargo nesse contrato sem revisão metodológica.
+- Compartilhar objeto-base antes de .superRefine: ZodEffects não tem .extend em
+  Zod3. Todos os objetos TSE são strict; validarVinculoTse confere setor/grupo
+  contra o município IBGE carregado e a proveniência, sem modificar o Censo.
+- Georreferenciado não implica alocado. Campos de setor/grupo são ambos null ou
+  ambos preenchidos. Conservar locais não alocados na contabilidade municipal.
+  Partição de IDs não prova contenção espacial: fronteiras, CRS, sobreposições
+  e pontos ambíguos exigem malha auditada e política do futuro produtor espacial.
+- metadata.tipo_dados default fonte_tse_declarada; simulados é explícito. Não
+  sobrepor pontos/votos reais em malhas sintéticas nem misturar no sentido inverso.
+  Dados eleitorais simulados atuais existem apenas nos testes; não há ETL TSE real.
+- Carga eleitoral é opt-in apenas em município/bairro, com DataLoader e React
+  Query, sinal e cache. Só404 vira indisponibilidade; outros erros são visíveis.
+  Requisições JSON incluem Accept application/json; não aceitar fallback HTML.
+- MapViewport usa fonte de pontos id_local, acima dos polígonos, sem distribuir
+  votos pela área ou fabricar centroides. Hover/click do ponto não aciona o
+  polígono inferior. TsePanel cruza por id_agregacao e mostra aviso metodológico,
+  distinguindo votos em locais do perímetro de residência dos eleitores.
