@@ -249,3 +249,28 @@ UFs sem detalhe precisam respeitar ambas as condições: dados_disponiveis e
 arquivo não vazio. Manter o resumo e exibir indisponibilidade sem fetch fictício.
 Não substituir resolução pelo arquivo pai por remoção de ../ nem criar uma
 segunda raiz /data paralela à árvore já servida pelo Vite.
+
+## Download e staging 2022 (03)
+
+- Ler etl_pipeline/FETCHING_IBGE.md. O usuário escolheu Censo 2022; não usar FTP,
+  variáveis ou dicionário de 2010 como se fossem 2022. O template de fontes
+  ainda precisa de URLs/colunas verificadas; o acesso oficial retornou 403 no proxy.
+- ibge_padrao.json é contrato do CSV preparado, não dicionário bruto. Perfil de
+  fontes separado declara cada tabela, período, URL/diretório, membro ZIP,
+  encoding, delimitador, decimal e mapeamentos. Domicílios devem ser total físico.
+- Compartilhar denylist e validações com core/02. Download stdlib mantém TLS/
+  proxy e verifica integridade local de cache. SHA local não é assinatura IBGE.
+- SIDRA usa ano explícito, confere dimensão/unidade/variável e filtra somente
+  extras do PIB. Não apagar municípios censitários sem PIB por interseção.
+- Join 1:1 em SQLite; nunca all_sectors nacional em RAM. ZIP nacional é lido uma
+  vez por tabela; arquivos de UF não podem introduzir setores de outra UF.
+- Não alterar pop, domicílios, peso, situação desconhecida nem transformar sigilo
+  em zero para passar validação. Erros geram relatório e impedem publicação.
+  Nomes só são normalizados por caixa, espaços e NFC; divergência real é erro.
+- Reconstrução renda média * peso é exata sobre os números publicados, mas não
+  recupera massa original perdida por arredondamento. Documentar essa origem.
+- Saída real exige diretório vazio; não sobrescrever fixtures. Cada staging tem
+  um diretório run-* novo, estado ready/failed e relatório completo. Proveniência
+  compacta no JSON, sem listas municipais nacionais e sem reescrita de todos
+  os arquivos depois de ingest. Malhas ficam fora do Git, com fontes e período
+  solicitado. Sem validação online não afirmar compatibilidade setorial.

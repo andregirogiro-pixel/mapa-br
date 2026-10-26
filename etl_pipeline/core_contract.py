@@ -20,6 +20,7 @@ CODE_PATTERNS = {
 # de toda malha IBGE. O adaptador real deve fixar release, dicionário e perfil.
 CODE_PATTERNS["cd_setor"] = re.compile(r"[0-9]{15}[A-Z]?")
 MEAN_TOLERANCE = Decimal("0.05")
+WATER_BODY_DENYLIST = frozenset({"4300001", "4300002"})
 
 
 def normalize_code(value: str, field: str) -> str:

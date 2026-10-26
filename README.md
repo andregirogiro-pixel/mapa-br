@@ -3,7 +3,9 @@
 Base de uma plataforma analítica do Brasil: País → Região → UF → Município →
 Bairro/Setor. Há um frontend React + Vite com navegação dos cinco níveis,
 cartograma de UFs, painel analítico e um gerador offline de demonstração.
-API, geometrias reais e download automático do Censo ainda não foram implementados.
+A API e a renderização de geometrias reais continuam pendentes. O automatizador
+03 prepara o download por perfil explícito; a publicação oficial de 2022 ainda
+não foi validada online neste ambiente.
 O adaptador `02_ingest_ibge_real.py` processa arquivos locais via manifesto explícito.
 
 ## Gerar e testar
@@ -184,3 +186,23 @@ UF/região do índice. PIB em bilhões e setores sob sigilo também podem colori
 a visualização. As UFs sem detalhe, como Amazonas na demo, mantêm o resumo
 sem solicitar arquivos ausentes. O desenvolvimento já serve data/processed
 via Vite; não exige symlink nem cópia para frontend/public.
+
+## Download e staging 2022
+
+O manifesto de colunas preparadas está em etl_pipeline/manifests/ibge_padrao.json.
+O novo 03_fetch_ibge_raw.py faz download/cache, join das tabelas e filtragem do
+PIB sem relaxar as invariantes. Ele exige um perfil de fontes/colunas de 2022
+conferido no dicionário. O template não contém URLs ou códigos brutos verificados.
+
+```bash
+python3 etl_pipeline/03_fetch_ibge_raw.py \
+  --source-profile /caminho/perfil-2022-verificado.json \
+  --ufs SC --pib-year 2021 --output-dir data/processed_real
+```
+
+Use --no-download-geojson para dispensar as malhas e --stage-only para revisar o
+staging antes da ingestão. O destino deve estar vazio; as fixtures são preservadas.
+Sigilo e erros não viram zeros ou ajustes artificiais. Diferenças substantivas
+em nomes e municípios censitários sem PIB interrompem o processo com relatório.
+A rede cloud retornou 403 para os hosts do IBGE; o download oficial permanece
+pendente de liberação. Leia [o guia de execução e limitações](etl_pipeline/FETCHING_IBGE.md).

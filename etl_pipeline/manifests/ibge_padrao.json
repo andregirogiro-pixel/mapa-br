@@ -1,0 +1,18 @@
+{
+  "release_censo": "IBGE_CENSO_AGREGADOS_SETORES",
+  "periodo_censo": "2022",
+  "periodo_pib": "2021",
+  "universo_renda": "responsaveis_domicilios_particulares_permanentes",
+  "csv_encoding": "utf-8",
+  "csv_delimiter": ";",
+  "decimal_separator": ".",
+  "parquet_decimal_separator": ".",
+  "col_map_setor": {
+    "cd_setor": "CD_SETOR", "cd_mun": "CD_MUN", "cd_uf": "CD_UF", "nm_mun": "NM_MUN",
+    "cd_dist": "CD_DIST", "nm_dist": "NM_DIST", "cd_subdist": "CD_SUBDIST", "nm_subdist": "NM_SUBDIST",
+    "cd_bairro": "CD_BAIRRO", "nm_bairro": "NM_BAIRRO", "situacao_setor": "SITUACAO_SETOR",
+    "populacao": "POPULACAO", "domicilios": "DOMICILIOS", "responsaveis_renda": "RESPONSAVEIS_RENDA",
+    "renda_media_responsavel": "RENDA_MEDIA_RESPONSAVEL", "massa_rendimento_setor": null
+  },
+  "col_map_pib_mun": { "cd_mun": "CD_MUN", "pib_mil_reais": "PIB_MIL_REAIS" }
+}

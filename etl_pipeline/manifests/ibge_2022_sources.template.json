@@ -1,0 +1,45 @@
+{
+  "release_censo": "PREENCHER_EDICAO_EXATA_DO_CENSO_2022",
+  "periodo_censo": "2022",
+  "universo_renda": "PREENCHER_DENOMINADOR_EXATO_INCLUSIVE_OU_EXCLUSIVE_SEM_RENDIMENTO",
+  "domicilios_universo": "total_fisico",
+  "dictionary_url": "PREENCHER_URL_HTTPS_OFICIAL_DO_DICIONARIO_2022",
+  "tables": [
+    {
+      "name": "territorio_e_demografia",
+      "periodo": "2022",
+      "scope": "national",
+      "urls": ["PREENCHER_URL_HTTPS_OFICIAL_DO_ZIP_2022"],
+      "encoding": "utf-8-sig",
+      "delimiter": ";",
+      "decimal_separator": ",",
+      "member_pattern": "PREENCHER_NOME_DO_CSV_BASICO*.csv",
+      "columns": {
+        "cd_setor": "PREENCHER_COLUNA_SETOR",
+        "situacao_setor": "PREENCHER_COLUNA_SITUACAO",
+        "populacao": "PREENCHER_COLUNA_POPULACAO_TOTAL",
+        "domicilios": "PREENCHER_COLUNA_DOMICILIOS_TOTAIS",
+        "nm_mun": "PREENCHER_COLUNA_NOME_MUNICIPIO",
+        "nm_dist": "PREENCHER_COLUNA_NOME_DISTRITO",
+        "nm_subdist": "PREENCHER_COLUNA_NOME_SUBDISTRITO",
+        "cd_bairro": "PREENCHER_COLUNA_CODIGO_BAIRRO",
+        "nm_bairro": "PREENCHER_COLUNA_NOME_BAIRRO"
+      }
+    },
+    {
+      "name": "renda_e_responsaveis",
+      "periodo": "2022",
+      "scope": "national",
+      "urls": ["PREENCHER_URL_HTTPS_OFICIAL_DO_ZIP_DE_RENDA_2022"],
+      "encoding": "utf-8-sig",
+      "delimiter": ";",
+      "decimal_separator": ",",
+      "member_pattern": "PREENCHER_NOME_DO_CSV_RENDA*.csv",
+      "columns": {
+        "cd_setor": "PREENCHER_COLUNA_SETOR",
+        "responsaveis_renda": "PREENCHER_COLUNA_DENOMINADOR_DA_RENDA",
+        "renda_media_responsavel": "PREENCHER_COLUNA_MEDIA_RENDA"
+      }
+    }
+  ]
+}

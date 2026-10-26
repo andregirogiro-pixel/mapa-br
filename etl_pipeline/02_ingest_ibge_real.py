@@ -20,13 +20,12 @@ from etl_pipeline.core_contract import (
     normalize_code, validate_code, nonnegative, aggregate_sectors,
     aggregate_summaries, validate_payload, write_payload,
     validate_sector_invariants, indicators_from_totals,
+    WATER_BODY_DENYLIST,
 )
 from etl_pipeline.reference_data import UFS, REGIOES, common_metadata
 
 SIGILO_MARKERS = {"X", "x"}
 AUSENTE_MARKERS = {"", "..", "...", "-", "NA", "N/A", "NULL", "None"}
-# Elementos cartográficos de águas estaduais, não municípios.
-WATER_BODY_DENYLIST = frozenset({"4300001", "4300002"})
 REQUIRED_SECTOR_FIELDS = {
     "cd_setor", "cd_mun", "situacao_setor", "populacao", "domicilios", "responsaveis_renda",
 }
@@ -296,10 +295,13 @@ def release_metadata(manifest, updated_at, sector_path, gdp_path):
 
 
 def ingest(sector_path: Path, gdp_path: Path, manifest: IBGEReleaseManifest,
-           output_dir: Path, updated_at: str) -> list[Path]:
+           output_dir: Path, updated_at: str, *, preparation: dict | None = None) -> list[Path]:
     """Estagia em SQLite (disco); mantém só um município e resumos em memória."""
     date.fromisoformat(updated_at)
     metadata = release_metadata(manifest, updated_at, sector_path, gdp_path)
+    if preparation is not None:
+        metadata["preparacao"] = preparation
+        metadata["indicadores"]["domicilios"]["universo"] = preparation["domicilios_universo"]
     gdp_by_mun = {}
     # Locale textual é independente entre CSV e Parquet.
     sector_manifest = (replace(manifest, decimal_separator=manifest.parquet_decimal_separator)
