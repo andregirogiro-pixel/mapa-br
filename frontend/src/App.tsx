@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { DataLoader } from './services/dataLoader';
 import type { LoadedData } from './services/dataLoader';
 import { buildSectorToGroupMap } from './services/sectorJoin';
@@ -8,6 +8,8 @@ import type { BrasilPayload, IndicadoresMacroECenso } from './types/contract';
 import { GeoStoreProvider, useGeoStore } from './store/useGeoStore';
 import type { MetricaAtiva } from './store/useGeoStore';
 import './styles.css';
+
+const DemoMap = lazy(() => import('./components/DemoMap'));
 
 const defaultUrl = new URL(import.meta.env.VITE_DATA_URL || 'data/processed/brasil.json',
   new URL(import.meta.env.BASE_URL, document.baseURI)).href;
@@ -178,6 +180,13 @@ function Explorer({ loader }: { loader: DataLoader }) {
           {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label></div>
         {index && cartogram && <div className="region-pills" aria-label="Regiões">{index.regioes.map(r => <button key={r.cd_regiao}
           aria-pressed={nav.level === 'regiao' && nav.cd_regiao === r.cd_regiao} onClick={() => navigate({ level: 'regiao', cd_regiao: r.cd_regiao })}>{r.nm_regiao}</button>)}</div>}
+        {data && demo && <Suspense fallback={<p role="status">Preparando mapa local…</p>}><DemoMap loader={loader} data={data} nav={nav} select={navigate}
+          rows={(rows.length ? rows : ufEntry ? [{ id: ufEntry.metadata.cd_uf, name: ufEntry.metadata.nm_uf,
+            values: ufEntry.resumo_uf, nav: { level: 'uf' as const, cd_uf: ufEntry.metadata.cd_uf } }] : []).map(r => ({
+              id: r.id, name: r.name, nav: r.nav, fill: color(measure(r.values, metric), min, max),
+              sigilo: (r.values?.setores_sob_sigilo ?? 0) > 0,
+              coverage: measure(r.values, 'cobertura_renda_proporcao'),
+            }))} /></Suspense>}
         {resource.status === 'loading' ? <div className="empty-map" role="status"><span className="loading-pulse" />Carregando o recorte selecionado…</div> :
           resource.status === 'error' ? <div className="empty-map" role="alert"><h2>Não foi possível abrir este recorte</h2><p>{resource.error}</p><button onClick={retry}>Tentar novamente</button><button onClick={() => navigate({ level: 'pais' })}>Voltar ao Brasil</button></div> :
           cartogram ? <div className="cartogram-wrap"><div className="cartogram" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
@@ -190,8 +199,8 @@ function Explorer({ loader }: { loader: DataLoader }) {
             <strong>{r.name}</strong><span>{format(measure(r.values, metric), metric)}</span><code>{r.code}</code></button>) :
             <div className="empty-map"><h2>{demo ? 'Detalhamento municipal não disponível nesta amostra' : 'Resumo disponível'}</h2><p>O desdobramento municipal não faz parte do recorte carregado.</p></div>}</div>}
         <div className="map-footer"><div className="legend"><span>{format(numeric.length ? min : null, metric)}</span><i /><span>{format(numeric.length ? max : null, metric)}</span><em>■ sem dado</em></div>
-          <p>{cartogram ? 'Cartograma esquemático de UFs. As posições não representam limites geográficos.' :
-            'Visão tabular do território. A malha geográfica ainda não foi disponibilizada.'}</p>
+          <p>{cartogram ? 'Navegação por botões. Geometrias da demonstração são sintéticas.' :
+            'Lista de territórios. Limites oficiais ainda não foram disponibilizados.'}</p>
           {reverse && <span className="map-note">{number.format(reverse.size)} setores vinculados aos grupos deste município</span>}</div>
       </section>
       <aside className="analytics" aria-label="Painel analítico">

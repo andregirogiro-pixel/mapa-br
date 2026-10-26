@@ -2,7 +2,7 @@
 
 Base de uma plataforma analítica do Brasil: País → Região → UF → Município →
 Bairro/Setor. Há um frontend React + Vite com navegação dos cinco níveis,
-cartograma de UFs, painel analítico e um gerador offline de demonstração.
+mapa MapLibre com polígonos sintéticos, painel analítico e geradores offline de demonstração.
 A API e a renderização de geometrias reais continuam pendentes. O automatizador
 03 prepara o download por perfil explícito. Fontes oficiais de 2022 já foram
 baixadas e auditadas para SC; a consolidação da renda continua bloqueada por
@@ -177,9 +177,21 @@ O último comando requer Chromium; veja [frontend/README.md](frontend/README.md)
 para instalar o navegador de testes ou selecionar seu executável. O build inclui
 os JSONs separados em dist/data/processed. As requisições continuam lazy.
 
-A visualização territorial é um cartograma esquemático, identificado na tela;
-municípios/bairros aparecem em cartões. Não há malha geográfica incluída. O join
-reverso setor → grupo já está preparado para uma futura malha municipal.
+A demonstração inclui sete GeoJSONs sintéticos locais, identificados na tela.
+MapLibre carrega UFs, municípios e setores sob demanda, aplica feature-state e
+seleciona bairros/grupos via join reverso. Não usa tiles, fontes ou serviços IBGE
+remotos. Os botões continuam disponíveis para navegação por teclado.
+
+Para regenerar as malhas (opcional, já versionadas):
+
+```bash
+python3 etl_pipeline/build_demo_geometries.py
+```
+
+Após instalar as dependências com npm ci, a execução/build da demo funciona
+sem internet. A auditoria de renda blocked não bloqueia a demonstração.
+Malhas oficiais futuras virão exclusivamente de arquivos estáticos FTP,
+com [auditoria espacial e temporal](etl_pipeline/GEOMETRIES.md).
 
 A store geográfica compartilhada (Zustand) mantém a navegação discriminada,
 a métrica e a sincronização com a URL. O botão Voltar nível usa os vínculos
@@ -201,8 +213,8 @@ python3 etl_pipeline/03_fetch_ibge_raw.py \
   --ufs SC --pib-year 2021 --output-dir data/processed_real
 ```
 
-Use --no-download-geojson para dispensar as malhas e --stage-only para revisar o
-staging antes da ingestão. O destino deve estar vazio; as fixtures são preservadas.
+Use --stage-only para revisar o staging antes da ingestão. O 03 é exclusivamente
+tabular; não baixa geometrias nem chama a API de Malhas. O destino deve estar vazio; as fixtures são preservadas.
 Sigilo e erros não viram zeros ou ajustes artificiais. Diferenças substantivas
 em nomes e municípios censitários sem PIB interrompem o processo com relatório.
 Na nova tentativa, FTP e SIDRA responderam com sucesso. O recorte básico de SC

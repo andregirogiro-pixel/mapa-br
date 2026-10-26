@@ -1,0 +1,202 @@
+{
+  "type": "FeatureCollection",
+  "demo": true,
+  "aviso": "Polígonos sintéticos; não representam limites oficiais",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "420540700000004",
+      "properties": {
+        "CD_SETOR": "420540700000004",
+        "cd_mun": "4205407",
+        "cd_bairro": "4205407001",
+        "id_agregacao": "bairro:4205407001",
+        "nm_bairro": "Centro (demonstração)",
+        "origem_malha": "ibge_bairro_oficial"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -50.4595,
+              -26.859499999999997
+            ],
+            [
+              -50.25295,
+              -26.859499999999997
+            ],
+            [
+              -50.25295,
+              -26.652949999999997
+            ],
+            [
+              -50.4595,
+              -26.652949999999997
+            ],
+            [
+              -50.4595,
+              -26.859499999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "420540700000005",
+      "properties": {
+        "CD_SETOR": "420540700000005",
+        "cd_mun": "4205407",
+        "cd_bairro": "4205407001",
+        "id_agregacao": "bairro:4205407001",
+        "nm_bairro": "Centro (demonstração)",
+        "origem_malha": "ibge_bairro_oficial"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -50.216499999999996,
+              -26.859499999999997
+            ],
+            [
+              -50.009949999999996,
+              -26.859499999999997
+            ],
+            [
+              -50.009949999999996,
+              -26.652949999999997
+            ],
+            [
+              -50.216499999999996,
+              -26.652949999999997
+            ],
+            [
+              -50.216499999999996,
+              -26.859499999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "420540700000001",
+      "properties": {
+        "CD_SETOR": "420540700000001",
+        "cd_mun": "4205407",
+        "cd_bairro": null,
+        "id_agregacao": "demo:4205407:grupo-01",
+        "nm_bairro": "Área sem bairro oficial (demonstração)",
+        "origem_malha": "setores_agregados"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -49.9735,
+              -26.859499999999997
+            ],
+            [
+              -49.76695,
+              -26.859499999999997
+            ],
+            [
+              -49.76695,
+              -26.652949999999997
+            ],
+            [
+              -49.9735,
+              -26.652949999999997
+            ],
+            [
+              -49.9735,
+              -26.859499999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "420540700000002A",
+      "properties": {
+        "CD_SETOR": "420540700000002A",
+        "cd_mun": "4205407",
+        "cd_bairro": null,
+        "id_agregacao": "demo:4205407:grupo-01",
+        "nm_bairro": "Área sem bairro oficial (demonstração)",
+        "origem_malha": "setores_agregados"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -50.4595,
+              -26.6165
+            ],
+            [
+              -50.25295,
+              -26.6165
+            ],
+            [
+              -50.25295,
+              -26.40995
+            ],
+            [
+              -50.4595,
+              -26.40995
+            ],
+            [
+              -50.4595,
+              -26.6165
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "420540700000003",
+      "properties": {
+        "CD_SETOR": "420540700000003",
+        "cd_mun": "4205407",
+        "cd_bairro": null,
+        "id_agregacao": "demo:4205407:grupo-01",
+        "nm_bairro": "Área sem bairro oficial (demonstração)",
+        "origem_malha": "setores_agregados"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -50.216499999999996,
+              -26.6165
+            ],
+            [
+              -50.009949999999996,
+              -26.6165
+            ],
+            [
+              -50.009949999999996,
+              -26.40995
+            ],
+            [
+              -50.216499999999996,
+              -26.40995
+            ],
+            [
+              -50.216499999999996,
+              -26.6165
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

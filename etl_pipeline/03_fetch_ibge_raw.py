@@ -19,7 +19,7 @@ import sqlite3
 import sys
 import tempfile
 import unicodedata
-from urllib.parse import quote, urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit
 import urllib.request
 import zipfile
 
@@ -33,7 +33,6 @@ UF_BY_CODE = {code: (sigla, name, region) for code, sigla, name, region in UFS}
 UF_BY_SIGLA = {sigla: code for code, sigla, _, _ in UFS}
 STANDARD_MANIFEST = Path(__file__).parent / "manifests/ibge_padrao.json"
 SIDRA_PIB_URL = "https://apisidra.ibge.gov.br/values/t/5938/n6/in%20n3%20{uf}/v/37/p/{year}?formato=json"
-MESH_ROOT = "https://servicodados.ibge.gov.br/api/v3/malhas/"
 TERRITORIAL_FIELDS = {"cd_mun", "cd_uf", "nm_mun", "cd_dist", "nm_dist", "cd_subdist", "nm_subdist", "cd_bairro", "nm_bairro", "situacao_setor"}
 NUMERIC_FIELDS = {"populacao", "domicilios", "responsaveis_renda", "renda_media_responsavel", "massa_rendimento_setor"}
 
@@ -41,6 +40,8 @@ NUMERIC_FIELDS = {"populacao", "domicilios", "responsaveis_renda", "renda_media_
 def official_url(url: str) -> str:
     parsed = urlsplit(url)
     host = parsed.hostname or ""
+    if host in {"servicodados.ibge.gov.br", "www.ibge.gov.br"}:
+        raise ValueError("Fonte dinâmica/portal proibida: usar arquivos estáticos FTP do IBGE")
     if parsed.scheme != "https" or not (host == "ibge.gov.br" or host.endswith(".ibge.gov.br")) or parsed.username or parsed.password:
         raise ValueError("A fonte deve ser uma URL HTTPS oficial do IBGE, sem credenciais")
     return url
@@ -290,37 +291,6 @@ def fetch_pib_sidra_for_ufs(ufs: list[str], year: str, cache: Path, municipaliti
     return result, receipts, sorted(filtered)
 
 
-def validate_geojson(raw: dict) -> None:
-    if not isinstance(raw, dict) or raw.get("type") != "FeatureCollection" or not raw.get("features"):
-        raise ValueError("Resposta não é uma FeatureCollection GeoJSON preenchida")
-    for feature in raw["features"]:
-        if not isinstance(feature, dict) or feature.get("type") != "Feature" or not isinstance(feature.get("properties"), dict):
-            raise ValueError("Feature GeoJSON inválida")
-        geometry = feature.get("geometry")
-        if not isinstance(geometry, dict) or geometry.get("type") not in {"Polygon", "MultiPolygon"} or not geometry.get("coordinates"):
-            raise ValueError("Esperados polígonos territoriais")
-
-
-def fetch_ibge_geojson_meshes(ufs: list[str], geo_dir: Path, cache: Path, period: str) -> list[dict]:
-    jobs = {
-        "br_pais.geojson": "paises/BR",
-        "br_regioes.geojson": "paises/BR?intrarregiao=regiao",
-        "br_ufs.geojson": "paises/BR?intrarregiao=UF",
-        **{f"municipios/mun_{uf}.geojson": f"estados/{uf}?intrarregiao=municipio" for uf in ufs},
-    }
-    receipts = []
-    for filename, endpoint in jobs.items():
-        url = MESH_ROOT + endpoint + ("&" if "?" in endpoint else "?") + "formato=application/vnd.geo+json&qualidade=intermediaria&periodo=" + quote(period)
-        path, receipt = download(url, cache, max_bytes=256 * 1024**2)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        validate_geojson(payload)
-        atomic_json(geo_dir / filename, payload)
-        receipts.append({**receipt, "arquivo": filename, "periodo_solicitado": period,
-                         "compatibilidade_setorial_verificada": False})
-    atomic_json(geo_dir / "sources.json", receipts)
-    return receipts
-
-
 def stage(profile: dict, ufs: list[str], raw_dir: Path, pib_year: str) -> tuple[Path, Path, Path, dict]:
     validate_source_profile(profile)
     if not isinstance(pib_year, str) or not re.fullmatch(r"[0-9]{4}", pib_year):
@@ -466,20 +436,16 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parents[1] / "data/processed_real")
     parser.add_argument("--pib-year", default="2021")
     parser.add_argument("--stage-only", action="store_true")
-    parser.add_argument("--download-geojson", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--geo-dir", type=Path, default=Path(__file__).resolve().parents[1] / "frontend/public/geo")
-    parser.add_argument("--mesh-period", default="2022")
+    parser.add_argument("--download-geojson", action=argparse.BooleanOptionalAction, default=False,
+                        help="Obsoleto: malhas reais exigem fonte estática FTP e auditoria separada")
     args = parser.parse_args()
-    if not re.fullmatch(r"[0-9]{4}", args.mesh_period):
-        parser.error("mesh-period deve ter quatro dígitos")
+    if args.download_geojson:
+        parser.error("API de Malhas removida. Use arquivos estáticos FTP e auditoria geométrica separada.")
     profile, ufs = load_source_profile(args.source_profile), resolve_ufs(args.ufs)
     # Não misturar uma nova execução com JSONs antigos de outro recorte.
     if not args.stage_only and args.output_dir.exists() and any(args.output_dir.iterdir()):
         parser.error("output-dir precisa ser novo/vazio; preserve as fixtures e releases anteriores")
     sectors, pib, manifest_path, report = stage(profile, ufs, args.raw_dir, args.pib_year)
-    if args.download_geojson:
-        report["meshes"] = fetch_ibge_geojson_meshes(ufs, args.geo_dir, args.raw_dir / "cache", args.mesh_period)
-        atomic_json(manifest_path.parent / "report.json", report)
     if args.stage_only:
         print(f"Staging pronto: {manifest_path}; ingestão não executada")
         return

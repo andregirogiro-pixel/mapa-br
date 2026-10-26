@@ -78,9 +78,9 @@ python3 etl_pipeline/03_fetch_ibge_raw.py \
 ```
 
 Usar `--ufs SC SP` ou `--ufs ALL` para outros recortes. `--stage-only` gera
-CSVs/manifesto/relatório e não chama o motor. `--no-download-geojson` desativa
-malhas; a opção é reversível via BooleanOptionalAction. `--geo-dir` escolhe o
-destino das malhas e `--mesh-period` registra explicitamente o período solicitado.
+CSVs/manifesto/relatório e não chama o motor. O script é exclusivamente tabular.
+`--no-download-geojson` permanece aceito para compatibilidade; `--download-geojson`
+falha antes de qualquer staging, explicando que a API dinâmica foi removida.
 O diretório de saída JSON deve ser novo/vazio; o comando sugerido anteriormente
 com `--output-dir data/processed` é recusado para preservar as fixtures existentes.
 
@@ -125,18 +125,16 @@ de a coincidência das chaves não provar completude do inventário censitário.
 
 ## Geometrias
 
-A API de Malhas v3 é chamada para país, regiões, UFs e municípios por UF. JSONs
-são validados como FeatureCollection poligonal antes de serem gravados em
-frontend/public/geo. sources.json conserva URLs, digests e período solicitado.
-Não se considera automaticamente provada a compatibilidade com os setores de
-2022. Na tentativa de 2026-10-26 o host retornou 503, inclusive para documentação
-e consultas simples. Não foi possível verificar esses endpoints/períodos online.
+Geometrias oficiais devem vir exclusivamente de arquivos estáticos em
+ftp.ibge.gov.br ou geoftp.ibge.gov.br, com cache/recibos e auditoria espacial e
+temporal separada. O 03 não consulta servicodados.ibge.gov.br nem www.ibge.gov.br;
+o helper também recusa essas fontes/redirects. Não há download de malhas reais
+implementado neste fluxo. Veja [os critérios obrigatórios](GEOMETRIES.md).
 
-Esse passo **não** baixa malha de setores nem dissolve bairros. A camada de nível
-5 continua exigindo uma malha setorial da mesma edição, a ser verificada. O
-frontend atual mantém cartograma/cartões e o join reverso pronto; não passa a
-renderizar polígonos só porque os arquivos foram baixados. Dados brutos, saídas
-reais e malhas pesadas permanecem ignorados pelo Git.
+A demonstração usa `build_demo_geometries.py`, sem qualquer acesso à rede, e
+sete arquivos versionados em frontend/public/geo/demo. São formas sintéticas
+com IDs das fixtures, não uma aproximação certificada das malhas de 2022.
+Dados brutos, saídas reais e geometrias oficiais pesadas permanecem fora do Git.
 
 ## Testes
 

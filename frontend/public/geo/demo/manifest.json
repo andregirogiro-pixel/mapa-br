@@ -1,0 +1,22 @@
+{
+  "tipo_dados": "geometrias_sinteticas",
+  "aviso": "Uso exclusivo com fixtures; sem compatibilidade com malhas reais",
+  "tabular_sha256_local": {
+    "brasil.json": "8fe676217dc46c51f06c9b6fcd8646465d5e6d8b99bb3c1d24c976965b7ab323",
+    "uf/35.json": "0f787afd10d618427e5484cec88d76cda2c72f4a8b5c3efc0219d8257705866f",
+    "municipios/35/3550308.json": "425f7d2e2798d3fdfd8e38cfc5ba9e9909b08b4b2fcb5245ae74c278e133d0ea",
+    "municipios/35/3509502.json": "2f2e4aadcc8f6fe495c25728aa47f5480bf0092319daf3576fd4d57a1fb2ee8c",
+    "uf/42.json": "50946130f1a8ee02c2846caa7078905e64540ee38b90310dbc0fdcc7e8155d7e",
+    "municipios/42/4205407.json": "c7e121cdaa2b6edd7e27277012cb7e824f06ce7d5951f1722a8d98935ecb7166",
+    "municipios/42/4209102.json": "d0349d31f1ebab01f80c38bca436c9300e0e8d906936ebcf4610c9671609fe0e"
+  },
+  "arquivos": [
+    "municipios/35.geojson",
+    "municipios/42.geojson",
+    "setores/35/3509502.geojson",
+    "setores/35/3550308.geojson",
+    "setores/42/4205407.geojson",
+    "setores/42/4209102.geojson",
+    "ufs.geojson"
+  ]
+}

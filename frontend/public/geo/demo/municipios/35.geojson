@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "demo": true,
+  "aviso": "Polígonos sintéticos; não representam limites oficiais",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "3550308",
+      "properties": {
+        "cd_mun": "3550308",
+        "cd_uf": "35",
+        "nm_mun": "São Paulo"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -46.9,
+              -20.299999999999997
+            ],
+            [
+              -46.089999999999996,
+              -20.299999999999997
+            ],
+            [
+              -46.089999999999996,
+              -19.49
+            ],
+            [
+              -46.9,
+              -19.49
+            ],
+            [
+              -46.9,
+              -20.299999999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "3509502",
+      "properties": {
+        "cd_mun": "3509502",
+        "cd_uf": "35",
+        "nm_mun": "Campinas"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -46.0,
+              -20.299999999999997
+            ],
+            [
+              -45.19,
+              -20.299999999999997
+            ],
+            [
+              -45.19,
+              -19.49
+            ],
+            [
+              -46.0,
+              -19.49
+            ],
+            [
+              -46.0,
+              -20.299999999999997
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

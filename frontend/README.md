@@ -1,7 +1,7 @@
 # Interface territorial
 
 React + Vite + TypeScript estrito. Usa os JSONs existentes e valida respostas
-com Zod; não inventa valores nem geometrias. Node >= 22.12 (validado em Node 24).
+com Zod; inclui uma malha sintética explicitamente identificada. Node >= 22.12 (validado em Node 24).
 
 ```bash
 cd frontend
@@ -70,21 +70,47 @@ de rewrite de rotas; carregam sempre o mesmo index.html.
   A cobertura usa os pesos conhecidos para não exibir 100% quando o JSON
   arredondou uma fração suprimida; denominador sob sigilo continua desconhecido.
 
-## Geometria ainda não disponível
+## MapLibre offline e geometrias de demonstração
 
-A visão inicial é um **cartograma esquemático de UFs**, rotulado na interface.
-Municípios/bairros aparecem em cartões tabulares. Não há polígonos ou zoom
-geográfico real; selecionar região recorta o cartograma. Não atribuir os
-retângulos a limites oficiais nem inferir bairros a partir deles.
+As sete malhas pequenas em `public/geo/demo/` são versionadas: `ufs.geojson`,
+`municipios/{35,42}.geojson` e `setores/{cd_uf}/{cd_mun}.geojson` dos quatro
+municípios. São retângulos SINTÉTICOS para testar interação; não são limites
+geográficos oficiais. As tabelas continuam como navegação acessível por teclado
+ou alternativa quando WebGL não está disponível.
 
-`buildSectorToGroupMap(bairros)` e `groupForSectorFeature(properties, reverse)`
-preparam o join para uma futura malha municipal de setores. CD_SETOR deve ser
-string canônica, inclusive sufixos. A mesma malha atende bairro oficial e
-fallback: cada setor herda a seleção/cor de seu id_agregacao. Features sem
-correspondência ficam sem grupo; associações duplicadas e códigos numéricos
-são recusados. O renderer futuro pode usar feature-state no MapLibre ou SVG,
-sem dissolve no cliente. O carregamento de geometria deve permanecer lazy
-por UF/município, com origem e release compatíveis com os dados tabulares.
+Para regenerar, na raiz do repositório:
+
+```bash
+python3 etl_pipeline/01_build_uf_base.py --date 2026-10-25
+python3 etl_pipeline/build_demo_geometries.py
+cd frontend
+npm ci
+npm run dev
+```
+
+As dependências precisam estar instaladas (npm ci requer rede ou cache local).
+Depois, a execução e o build da demo não acessam IBGE, CDNs, tiles, fontes ou
+sprites remotos. O estilo MapLibre é local, sem mapa-base externo; o worker está
+no pacote instalado. A auditoria de renda de 2022 não é executada pelo frontend
+nem condiciona a demonstração. As malhas já versionadas permitem iniciar sem
+Python e sem regenerar as fixtures.
+
+O mapa carrega UFs inicialmente, municípios somente ao abrir SP/SC e setores
+apenas ao abrir o município. Região filtra/ajusta a câmera às UFs correspondentes.
+UFs sem detalhe conservam seu resumo e polígono sintético sem fetch municipal.
+`promoteId` usa cd_uf, cd_mun ou CD_SETOR textual. `setFeatureState` atualiza cor,
+sigilo, cobertura e seleção. A seleção de bairro usa SEMPRE id_agregacao e
+acende todos os seus setores pelo join reverso, inclusive no fallback; não há
+dissolve no navegador. Contorno âmbar indica grupo com setores sob sigilo,
+contorno branco indica o grupo selecionado. Tooltip mostra cobertura conhecida
+ou desconhecida; valores ausentes não viram zero.
+
+`demoGeometry.ts` recusa códigos numéricos, duplicatas, setores fora do município,
+grupos incoerentes e inventários diferentes dos dados tabulares. Geometrias são
+permitidas somente para metadata.tipo_dados=simulados. O manifesto conserva
+hashes locais dos arquivos tabulares para rastreabilidade; o cliente verifica
+os vínculos/IDs, não revalida esses hashes. Não apontar dados reais para geo/demo.
+Veja [a política de geometrias oficiais](../etl_pipeline/GEOMETRIES.md).
 
 ## Store geográfica compartilhada
 

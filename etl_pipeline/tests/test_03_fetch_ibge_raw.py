@@ -172,24 +172,21 @@ class FetchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             fetch.resolve_ufs([42])
 
-    def test_geometry_download_is_partitioned_and_has_receipts(self):
-        feature = {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}}
-        path = self.root / "mesh.json"; path.write_text(json.dumps({"type": "FeatureCollection", "features": [feature]}))
-        def downloaded(url, cache, **kwargs):
-            self.assets[url] = path
-            return self.downloaded(url, cache, **kwargs)
-        with patch.object(fetch, "download", side_effect=downloaded):
-            receipts = fetch.fetch_ibge_geojson_meshes(["42"], self.root / "geo", self.root / "cache", "2022")
-        self.assertEqual(len(receipts), 4)
-        self.assertTrue((self.root / "geo/municipios/mun_42.geojson").exists())
-        self.assertFalse((self.root / "geo/municipios/mun_35.geojson").exists())
-        self.assertTrue(all(not r["compatibilidade_setorial_verificada"] for r in receipts))
-        with self.assertRaises(ValueError):
-            fetch.validate_geojson({"type": "FeatureCollection", "features": []})
+    def test_dynamic_hosts_are_not_accepted_as_sources(self):
+        for host in ("servicodados.ibge.gov.br", "www.ibge.gov.br"):
+            with self.assertRaises(ValueError):
+                fetch.official_url(f"https://{host}/arquivo.zip")
+        self.assertEqual(fetch.official_url("https://geoftp.ibge.gov.br/malhas.zip"), "https://geoftp.ibge.gov.br/malhas.zip")
+
+    def test_removed_mesh_api_fails_before_staging(self):
+        with patch.object(fetch.sys, "argv", ["03", "--source-profile", "unused.json", "--download-geojson"]), patch.object(fetch, "stage") as stage:
+            with self.assertRaises(SystemExit):
+                fetch.main()
+            stage.assert_not_called()
 
     def test_cli_uses_preparation_metadata_without_exporting_national_municipal_lists(self):
         profile_path = self.root / "profile.json"; profile_path.write_text(json.dumps(self.profile))
-        argv = ["03", "--source-profile", str(profile_path), "--ufs", "SC", "--no-download-geojson",
+        argv = ["03", "--source-profile", str(profile_path), "--ufs", "SC",
                 "--raw-dir", str(self.root / "raw"), "--output-dir", str(self.root / "processed")]
         with patch.object(fetch.sys, "argv", argv), patch.object(fetch, "download", side_effect=self.downloaded):
             fetch.main()

@@ -6,7 +6,7 @@
   `data/processed/` (JSONs estáticos) e `notebooks/` (exploração).
 - Navegação: País → Região → UF → Município → Bairro/Setor.
   Interface planejada: mapa à esquerda e painel analítico à direita, tema escuro.
-  O frontend tem cinco níveis, URL compartilhável e cartograma explícito.
+  O frontend tem cinco níveis, URL compartilhável e mapa de polígonos sintéticos.
   API e geometria real ainda não foram implementadas. O adaptador local
   de arquivos reais está em `02_ingest_ibge_real.py`; não baixa bases.
 - Usar o checkout existente. Cada tarefa cloud já é isolada; não criar worktrees
@@ -232,12 +232,20 @@ Não adicionar API, geometrias ou novas fontes reais sem tarefa específica.
 - Se cobertura arredondada no JSON for 1, mas responsáveis válidos < total,
   usar os totais conhecidos e mostrar <100% quando necessário. Denominador
   suprimido continua cobertura desconhecida. Isso não imputa renda omitida.
-- A interface atual exibe cartograma esquemático de UFs e cartões territoriais;
-  não há polígonos oficiais ou zoom geográfico real. Não confundir os retângulos
-  com limites territoriais. buildSectorToGroupMap/groupForSectorFeature preparam
-  o join reverso CD_SETOR (string) -> id_agregacao para uma malha municipal
-  futura, atendendo oficial/fallback sem dissolve. Recusar setores duplicados
-  e códigos numéricos; features sem vínculo não herdam um grupo arbitrário.
+- DemoMap renderiza MapLibre com estilo local vazio, sem tiles/glyphs/sprites
+  externos. O componente/biblioteca são carregados sob demanda. promoteId usa
+  cd_uf/cd_mun/CD_SETOR strings; feature-state colore indicadores e seleciona
+  todos os setores do grupo via id_agregacao. Manter botões como alternativa
+  acessível. Indicar sempre que são formas SINTÉTICAS, nunca limites oficiais.
+- build_demo_geometries.py lê SOMENTE fixtures simuladas, resolve caminhos
+  relativos ao pai, valida com core e gera 7 arquivos em frontend/public/geo/demo.
+  Esta subpasta pequena é versionada; geometrias reais continuam ignoradas.
+  O manifesto guarda hashes tabulares; o cliente valida conjuntos de IDs e
+  vínculos territoriais/grupos, não os hashes. Regenerar após mudar as fixtures.
+- demoGeometry.ts carrega UFs, municípios por UF e setores por município lazy,
+  com cache/cancelamento do DataLoader. Recusa inventários diferentes, duplicatas,
+  IDs numéricos e grupos incoerentes. Usar a malha setorial única para oficial
+  e fallback, sem dissolve. UF sem dados não busca malha municipal inexistente.
 - O build copia dados em partições fora do bundle. O dev serve a mesma árvore.
   MAPA_BR_DATA_DIR seleciona outra árvore local; VITE_DATA_URL muda o índice
   remoto e VITE_BASE_PATH muda o prefixo de publicação. Não importar todos os
@@ -291,3 +299,17 @@ segunda raiz /data paralela à árvore já servida pelo Vite.
   compacta no JSON, sem listas municipais nacionais e sem reescrita de todos
   os arquivos depois de ingest. Malhas ficam fora do Git, com fontes e período
   solicitado. Sem validação online não afirmar compatibilidade setorial.
+
+## Política de geometrias e independência da demo
+
+- O frontend e seu build não dependem de servicodados.ibge.gov.br ou www.ibge.gov.br.
+  O 03 é exclusivamente tabular; --download-geojson é recusado, padrão false.
+  Não reintroduzir API de Malhas nem portal como fonte ou fallback. A demo roda
+  offline após instalar dependências e não depende da auditoria real blocked.
+- Para malhas oficiais futuras, ler etl_pipeline/GEOMETRIES.md. Usar exclusivamente
+  arquivos estáticos em ftp.ibge.gov.br/geoftp.ibge.gov.br, release e dicionário
+  verificados. Nada de inferir compatibilidade pelo nome do arquivo.
+- Auditoria real ainda não implementada: exigir CRS e polígonos válidos, códigos
+  textuais no schema original, conjuntos 1:1 sem duplicatas com TODOS os 16.736
+  setores do básico SC (inclusive os 301 sem renda), prefixos e denylist compartilhada
+  WATER_BODY_DENYLIST. Nunca testar completude só contra os 16.435 da renda.

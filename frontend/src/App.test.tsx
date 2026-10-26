@@ -1,9 +1,11 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { DataLoader } from './services/dataLoader';
 import { base, fixtureFetcher } from './test/fixtures';
+
+vi.mock('./components/DemoMap', () => ({ default: () => null }));
 
 beforeEach(() => window.history.replaceState(null, '', '/'));
 describe('drill-down interativo', () => {

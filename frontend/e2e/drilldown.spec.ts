@@ -54,3 +54,46 @@ test('link profundo no celular e UF sem desdobramento', async ({ page }) => {
   await expect(page.getByText('O desdobramento municipal não faz parte do recorte carregado.')).toBeVisible();
   await expect(page).not.toHaveURL(/cd_mun|id_agregacao/);
 });
+
+test('MapLibre offline: malhas lazy, clique setorial e métrica sem rede externa', async ({ page }) => {
+  const external: string[] = []; const geometries: string[] = [];
+  page.on('request', req => {
+    const url = new URL(req.url());
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      if (url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') external.push(req.url());
+      if (url.pathname.endsWith('.geojson')) geometries.push(url.pathname);
+    }
+  });
+  await page.route(/^https?:\/\//, route => {
+    const host = new URL(route.request().url()).hostname;
+    return host === '127.0.0.1' || host === 'localhost' ? route.continue() : route.abort();
+  });
+  await page.goto('/');
+  const map = page.getByTestId('demo-map');
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  expect(geometries).toEqual(['/geo/demo/ufs.geojson']);
+  await page.getByRole('combobox', { name: 'Selecionar UF' }).selectOption('42');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Santa Catarina');
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  expect(geometries).toContain('/geo/demo/municipios/42.geojson');
+  expect(geometries.some(p => p.includes('/setores/'))).toBe(false);
+  await page.getByRole('region', { name: 'Exploração territorial' }).getByRole('button', { name: /Florianópolis/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Florianópolis');
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  expect(geometries).toContain('/geo/demo/setores/42/4205407.geojson');
+  const bounds = await map.boundingBox();
+  await map.locator('canvas').click({ position: { x: bounds!.width * .5, y: bounds!.height * .30 } });
+  await expect(page).toHaveURL(/level=bairro/);
+  await expect(page.getByText('Agrupamento de Setores por Subdistrito/Distrito', { exact: true })).toBeVisible();
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  await expect(page).toHaveURL(/id_agregacao=demo%3A4205407%3Agrupo-01/);
+  await page.screenshot({ path: '/tmp/mapa-br-offline-webgl.png', fullPage: true });
+  const canvasBefore = await map.locator('canvas').screenshot();
+  await page.getByRole('combobox', { name: 'Colorir por' }).selectOption('setores_sob_sigilo');
+  await expect.poll(async () => !canvasBefore.equals(await map.locator('canvas').screenshot())).toBe(true);
+  const count = geometries.length;
+  await page.getByRole('combobox', { name: 'Colorir por' }).selectOption('cobertura_renda_proporcao');
+  await expect(map).toHaveAttribute('data-ready', 'true');
+  expect(geometries).toHaveLength(count);
+  expect(external).toEqual([]);
+});

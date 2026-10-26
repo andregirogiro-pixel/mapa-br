@@ -32,7 +32,8 @@ playwright-report/
 data/raw/*
 !data/raw/.gitkeep
 data/processed_real/
-frontend/public/geo/
+frontend/public/geo/*
+!frontend/public/geo/demo/
 *.shp
 *.shx
 *.dbf

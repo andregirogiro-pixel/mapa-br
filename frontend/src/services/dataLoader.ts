@@ -22,7 +22,7 @@ export class DataLoader {
     for (const entry of entries) entry.controller.abort();
   }
 
-  private request(url: string, signal: AbortSignal): Promise<unknown> {
+  request(url: string, signal: AbortSignal, parse: (raw: unknown) => unknown = raw => payloadSchema.parse(raw)): Promise<unknown> {
     if (signal.aborted) return Promise.reject(aborted());
     let promise = this.cache.get(url);
     if (!promise) {
@@ -30,7 +30,7 @@ export class DataLoader {
       this.pending.set(url, entry);
       promise = this.fetcher(url, { signal: entry.controller.signal }).then(async response => {
         if (!response.ok) throw new Error(`Não foi possível carregar os dados (HTTP ${response.status}).`);
-        return payloadSchema.parse(await response.json());
+        return parse(await response.json());
       });
       this.cache.set(url, promise);
       const current = promise;
