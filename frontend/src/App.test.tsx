@@ -44,4 +44,21 @@ describe('drill-down interativo', () => {
     render(<App loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
     expect(await screen.findByText('< 100%')).toBeInTheDocument();
   });
+  it('volta pela hierarquia com a métrica compartilhada e o histórico sincronizados', async () => {
+    window.history.replaceState(null, '', '?level=municipio&cd_uf=42&cd_mun=4205407');
+    const user = userEvent.setup();
+    render(<App loader={new DataLoader(`${base}brasil.json`, fixtureFetcher())} />);
+    await screen.findByRole('heading', { level: 1, name: 'Florianópolis' });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Colorir por' }), 'setores_sob_sigilo');
+    await user.click(screen.getByRole('button', { name: /Voltar nível/ }));
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Santa Catarina'));
+    expect(window.location.search).not.toContain('cd_mun');
+    await user.click(screen.getByRole('button', { name: /Voltar nível/ }));
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Sul'));
+    expect(screen.getByRole('combobox', { name: 'Colorir por' })).toHaveValue('setores_sob_sigilo');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Colorir por' }), 'pib_total_bi');
+    await user.click(screen.getByRole('button', { name: /Voltar nível/ }));
+    await waitFor(() => expect(window.location.search).toBe(''));
+    expect(screen.getByRole('combobox', { name: 'Colorir por' })).toHaveValue('pib_total_bi');
+  });
 });

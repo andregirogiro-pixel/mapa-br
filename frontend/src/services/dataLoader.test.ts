@@ -22,6 +22,29 @@ describe('URLs, cache e cancelamento', () => {
     await loader.load({ level: 'uf', cd_uf: '42' }, new AbortController().signal);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+  it('mantém o resumo das 25 UFs sem detalhe, inclusive Amazonas, sem buscar arquivos inexistentes', async () => {
+    const fetcher = fixtureFetcher(); const loader = new DataLoader(`${base}brasil.json`, fetcher);
+    const data = await loader.load({ level: 'pais' }, new AbortController().signal);
+    const unavailable = data.index.ufs.filter(uf => !uf.dados_disponiveis);
+    expect(unavailable).toHaveLength(25);
+    expect(unavailable.some(uf => uf.metadata.cd_uf === '13')).toBe(true);
+    for (const uf of unavailable) {
+      const result = await loader.load({ level: 'uf', cd_uf: uf.metadata.cd_uf }, new AbortController().signal);
+      expect(result.uf).toBeUndefined();
+      expect(result.index.ufs.find(item => item.metadata.cd_uf === uf.metadata.cd_uf)?.resumo_uf).toEqual(uf.resumo_uf);
+    }
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it('exige tanto a flag de disponibilidade quanto um caminho para buscar o detalhe', async () => {
+    for (const state of [{ dados_disponiveis: true, arquivo: null }, { dados_disponiveis: false, arquivo: 'uf/13.json' }]) {
+      const copy = structuredClone(fixtures['brasil.json']) as { ufs: { metadata: { cd_uf: string }; dados_disponiveis: boolean; arquivo: string | null }[] };
+      Object.assign(copy.ufs.find(uf => uf.metadata.cd_uf === '13')!, state);
+      const fetcher = fixtureFetcher(); fetcher.mockResolvedValueOnce(new Response(JSON.stringify(copy)));
+      const loader = new DataLoader(`${base}brasil.json`, fetcher);
+      expect((await loader.load({ level: 'uf', cd_uf: '13' }, new AbortController().signal)).uf).toBeUndefined();
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    }
+  });
   it('compartilha uma request pendente sem cancelar o outro consumidor', async () => {
     let release!: (value: Response) => void;
     const fetcher = vi.fn<typeof fetch>(() => new Promise(resolve => { release = resolve; }));

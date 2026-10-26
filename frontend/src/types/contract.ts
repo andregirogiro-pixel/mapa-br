@@ -35,6 +35,8 @@ export const indicadoresSchema = z.object({
   cobertura_renda_proporcao: z.number().min(0).max(1).nullable(),
 }).strict();
 export type IndicadoresMacroECenso = z.infer<typeof indicadoresSchema>;
+export type IndicadoresCanonica = IndicadoresMacroECenso;
+export type NivelGeografico = 'brasil' | 'regiao' | 'uf' | 'municipio';
 export const origemSchema = z.enum(['ibge_bairro_oficial', 'setores_agregados']);
 export type OrigemMalha = z.infer<typeof origemSchema>;
 export const metodoSchema = z.enum([
@@ -68,6 +70,7 @@ export const bairroSchema = indicadoresSchema.extend({
   }
 });
 export type BairroDetalhe = z.infer<typeof bairroSchema>;
+export type BairroAgregado = BairroDetalhe;
 const metadata = z.object({
   schema_version: z.literal('2.0'), updated_at: z.string(), tipo_dados: z.string(),
   aviso: z.string(), universo_renda: z.string(),
@@ -76,20 +79,26 @@ const metadata = z.object({
   }).passthrough()),
 }).passthrough();
 const ufIdentity = z.object({ cd_uf: cdUfSchema, sigla_uf: z.string(), nm_uf: z.string(),
-  cd_regiao: cdRegiaoSchema, nm_regiao: z.string() }).passthrough();
+  cd_regiao: cdRegiaoSchema, nm_regiao: z.string(), updated_at: z.string().optional() }).passthrough();
 const ufIndex = z.object({ metadata: ufIdentity, resumo_uf: indicadoresSchema.nullable(),
   dados_disponiveis: z.boolean(), arquivo: z.string().nullable() });
+const regiaoResumo = z.object({ cd_regiao: cdRegiaoSchema, nm_regiao: z.string(), indicadores: indicadoresSchema.nullable() });
+export type RegiaoResumo = z.infer<typeof regiaoResumo>;
 export const brasilSchema = z.object({
   metadata: metadata.extend({ nivel: z.literal('brasil') }), resumo_brasil: indicadoresSchema,
-  regioes: z.array(z.object({ cd_regiao: cdRegiaoSchema, nm_regiao: z.string(), indicadores: indicadoresSchema.nullable() })).length(5),
+  regioes: z.array(regiaoResumo).length(5),
   ufs: z.array(ufIndex).length(27),
 });
 export type BrasilPayload = z.infer<typeof brasilSchema>;
 export type UfIndex = z.infer<typeof ufIndex>;
+export type UfIndiceItem = UfIndex;
+const municipioResumo = z.object({ cd_mun: cdMunSchema, nm_mun: z.string(),
+  indicadores: indicadoresSchema, total_bairros: z.number().int().nonnegative(),
+  total_setores: z.number().int().nonnegative(), arquivo: z.string().min(1) });
+export type MunicipioResumoItem = z.infer<typeof municipioResumo>;
 export const ufSchema = z.object({
-  metadata: metadata.merge(ufIdentity).extend({ nivel: z.literal('uf') }), resumo_uf: indicadoresSchema,
-  municipios_resumo: z.array(z.object({ cd_mun: cdMunSchema, nm_mun: z.string(),
-    indicadores: indicadoresSchema, total_bairros: count, total_setores: count, arquivo: z.string() })),
+  metadata: metadata.merge(ufIdentity).extend({ nivel: z.literal('uf'), updated_at: z.string() }), resumo_uf: indicadoresSchema,
+  municipios_resumo: z.array(municipioResumo),
 });
 export type UfPayload = z.infer<typeof ufSchema>;
 export const municipioSchema = z.object({
@@ -113,4 +122,5 @@ export const municipioSchema = z.object({
   }
 });
 export type MunicipioPayload = z.infer<typeof municipioSchema>;
+export type MunicipioDetalhe = MunicipioPayload['municipio'];
 export const payloadSchema = z.union([brasilSchema, ufSchema, municipioSchema]);

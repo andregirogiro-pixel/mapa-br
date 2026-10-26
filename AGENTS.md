@@ -217,6 +217,12 @@ Não adicionar API, geometrias ou novas fontes reais sem tarefa específica.
   tem sinal próprio; só abortar o transporte compartilhado quando não restarem
   consumidores. Limpeza dos efeitos aborta navegações antigas e impede resposta
   tardia de publicar seleção obsoleta. Recarregar a página ao trocar releases.
+- useGeoStore.ts usa Zustand com provider por aplicação; navigation é a união
+  discriminada, não um conjunto de IDs nullable independentes. Registrar o
+  vínculo UF/região do índice para voltarNivel; nunca preservar a região de
+  outra UF. Ações validam IDs antes de URLSearchParams, sem String(code).
+  Métrica compartilhada: população, renda, PIB per capita, PIB em bilhões,
+  cobertura e quantidade de setores sob sigilo.
 - Navegação é união discriminada pais/regiao/uf/municipio/bairro, sincronizada
   com query params e popstate. Trocar UF substitui o estado e limpa descendentes.
   Validar links profundos, prefixos e pertencimento dos registros ao pai.
@@ -236,3 +242,10 @@ Não adicionar API, geometrias ou novas fontes reais sem tarefa específica.
   MAPA_BR_DATA_DIR seleciona outra árvore local; VITE_DATA_URL muda o índice
   remoto e VITE_BASE_PATH muda o prefixo de publicação. Não importar todos os
   JSONs no código da aplicação (fixtures de testes são a única exceção).
+
+Aliases TS canônicos são inferidos de Zod, não interfaces duplicadas. Resumos
+municipais exigem total_bairros e total_setores inteiros, não opcionais/nullable.
+UFs sem detalhe precisam respeitar ambas as condições: dados_disponiveis e
+arquivo não vazio. Manter o resumo e exibir indisponibilidade sem fetch fictício.
+Não substituir resolução pelo arquivo pai por remoção de ../ nem criar uma
+segunda raiz /data paralela à árvore já servida pelo Vite.

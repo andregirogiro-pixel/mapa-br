@@ -177,3 +177,10 @@ os JSONs separados em dist/data/processed. As requisições continuam lazy.
 A visualização territorial é um cartograma esquemático, identificado na tela;
 municípios/bairros aparecem em cartões. Não há malha geográfica incluída. O join
 reverso setor → grupo já está preparado para uma futura malha municipal.
+
+A store geográfica compartilhada (Zustand) mantém a navegação discriminada,
+a métrica e a sincronização com a URL. O botão Voltar nível usa os vínculos
+UF/região do índice. PIB em bilhões e setores sob sigilo também podem colorir
+a visualização. As UFs sem detalhe, como Amazonas na demo, mantêm o resumo
+sem solicitar arquivos ausentes. O desenvolvimento já serve data/processed
+via Vite; não exige symlink nem cópia para frontend/public.

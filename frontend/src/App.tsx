@@ -1,26 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataLoader } from './services/dataLoader';
 import type { LoadedData } from './services/dataLoader';
 import { buildSectorToGroupMap } from './services/sectorJoin';
-import { navigationSearch, parseNavigation } from './state/navigation';
+import { navigationSearch } from './state/navigation';
 import type { Navigation } from './state/navigation';
 import type { BrasilPayload, IndicadoresMacroECenso } from './types/contract';
+import { GeoStoreProvider, useGeoStore } from './store/useGeoStore';
+import type { MetricaAtiva } from './store/useGeoStore';
 import './styles.css';
 
 const defaultUrl = new URL(import.meta.env.VITE_DATA_URL || 'data/processed/brasil.json',
   new URL(import.meta.env.BASE_URL, document.baseURI)).href;
 const defaultLoader = new DataLoader(defaultUrl);
-type Metric = 'populacao' | 'pib_per_capita' | 'renda_media_responsavel' | 'cobertura_renda_proporcao';
+type Metric = MetricaAtiva;
 const metricLabels: Record<Metric, string> = {
   populacao: 'População', pib_per_capita: 'PIB por habitante',
   renda_media_responsavel: 'Renda do responsável', cobertura_renda_proporcao: 'Cobertura da renda',
+  pib_total_bi: 'PIB total (bilhões)', setores_sob_sigilo: 'Setores sob sigilo',
 };
 const number = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 });
 const percent = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 2 });
 const format = (value: number | null | undefined, metric: Metric = 'populacao') => value == null ? '—' :
-  metric === 'populacao' ? number.format(value) : metric === 'cobertura_renda_proporcao' ?
-    (value < 1 && percent.format(value) === percent.format(1) ? '< 100%' : percent.format(value)) : money.format(value);
+  metric === 'populacao' || metric === 'setores_sob_sigilo' ? number.format(value) : metric === 'cobertura_renda_proporcao' ?
+    (value < 1 && percent.format(value) === percent.format(1) ? '< 100%' : percent.format(value)) : metric === 'pib_total_bi' ? `${money.format(value)} bi` : money.format(value);
 function measure(values: IndicadoresMacroECenso | null | undefined, metric: Metric): number | null {
   if (!values) return null;
   if (metric === 'cobertura_renda_proporcao') {
@@ -32,26 +35,6 @@ function measure(values: IndicadoresMacroECenso | null | undefined, metric: Metr
   return values[metric];
 }
 interface Row { id: string; name: string; code: string; values: IndicadoresMacroECenso | null; nav: Navigation; badge?: string }
-
-function readRoute() {
-  try { return { nav: parseNavigation(window.location.search), error: '' }; }
-  catch { return { nav: { level: 'pais' } as Navigation, error: 'Este endereço contém uma seleção inválida. Volte ao Brasil para recomeçar.' }; }
-}
-function useNavigation() {
-  const [route, setRoute] = useState(readRoute);
-  useEffect(() => {
-    const back = () => setRoute(readRoute());
-    window.addEventListener('popstate', back);
-    return () => window.removeEventListener('popstate', back);
-  }, []);
-  const navigate = useCallback((nav: Navigation) => {
-    const url = new URL(window.location.href);
-    url.search = navigationSearch(nav);
-    window.history.pushState(null, '', url);
-    setRoute({ nav, error: '' });
-  }, []);
-  return { ...route, navigate };
-}
 
 type Resource = { key: string; status: 'loading' | 'error' | 'ready'; data?: LoadedData; error?: string };
 function useData(loader: DataLoader, nav: Navigation) {
@@ -122,9 +105,15 @@ function Quality({ values }: { values: IndicadoresMacroECenso }) {
 }
 
 export default function App({ loader = defaultLoader }: { loader?: DataLoader }) {
-  const { nav, error: routeError, navigate } = useNavigation();
+  return <GeoStoreProvider><Explorer loader={loader} /></GeoStoreProvider>;
+}
+function Explorer({ loader }: { loader: DataLoader }) {
+  const { navigation: nav, routeError, navigate, metrica: metric, setMetrica,
+    registrarRegioes, voltarNivel } = useGeoStore(state => state);
   const { resource, index, retry } = useData(loader, nav);
-  const [metric, setMetric] = useState<Metric>('renda_media_responsavel');
+  useEffect(() => {
+    if (index) registrarRegioes(index.ufs.map(uf => uf.metadata));
+  }, [index, registrarRegioes]);
   const [search, setSearch] = useState('');
   useEffect(() => setSearch(''), [navigationSearch(nav)]);
   const data = resource.status === 'ready' ? resource.data : undefined;
@@ -142,7 +131,7 @@ export default function App({ loader = defaultLoader }: { loader?: DataLoader })
   if (data && (nav.level === 'pais' || nav.level === 'regiao')) rows = data.index.ufs
     .filter(u => nav.level !== 'regiao' || u.metadata.cd_regiao === nav.cd_regiao)
     .map(u => ({ id: u.metadata.cd_uf, code: u.metadata.sigla_uf, name: u.metadata.nm_uf, values: u.resumo_uf,
-      nav: { level: 'uf', cd_uf: u.metadata.cd_uf }, badge: u.dados_disponiveis ? 'Detalhe disponível' : 'Resumo' }));
+      nav: { level: 'uf', cd_uf: u.metadata.cd_uf }, badge: u.dados_disponiveis && u.arquivo ? 'Detalhe disponível' : 'Resumo' }));
   else if (data?.uf && nav.level === 'uf') rows = data.uf.municipios_resumo.map(m => ({
     id: m.cd_mun, code: m.cd_mun, name: m.nm_mun, values: m.indicadores,
     nav: { level: 'municipio', cd_uf: nav.cd_uf, cd_mun: m.cd_mun } }));
@@ -170,6 +159,7 @@ export default function App({ loader = defaultLoader }: { loader?: DataLoader })
     <div className="provenance"><span>{demo ? 'DADOS SIMULADOS' : 'RECORTE DA FONTE DECLARADA'}</span>
       {demo ? 'Indicadores ilustrativos. Não representam estatísticas oficiais.' : 'A cobertura territorial e os períodos dependem dos arquivos fornecidos.'}</div>
     <nav className="toolbar" aria-label="Navegação territorial"><div className="breadcrumbs">
+      <button className="back-level" disabled={nav.level === 'pais'} onClick={voltarNivel}>← Voltar nível</button>
       <button onClick={() => navigate({ level: 'pais' })}>Brasil</button>
       {nav.level !== 'pais' && region && <><span>/</span><button onClick={() => navigate({ level: 'regiao', cd_regiao: region.cd_regiao })}>{region.nm_regiao}</button></>}
       {ufEntry && <><span>/</span><button onClick={() => navigate({ level: 'uf', cd_uf: ufEntry.metadata.cd_uf })}>{ufEntry.metadata.sigla_uf}</button></>}
@@ -184,7 +174,7 @@ export default function App({ loader = defaultLoader }: { loader?: DataLoader })
       <section className="map-panel" aria-label="Exploração territorial">
         <div className="map-heading"><div><span className="eyebrow">EXPLORAÇÃO TERRITORIAL / {nav.level.toUpperCase()}</span><h1>{title ?? 'Carregando território…'}</h1></div>
           <span className="level-tag">{({ pais: '01', regiao: '02', uf: '03', municipio: '04', bairro: '05' })[nav.level]} / 05</span></div>
-        <div className="map-controls"><label>Colorir por <select value={metric} onChange={e => setMetric(e.target.value as Metric)}>
+        <div className="map-controls"><label>Colorir por <select value={metric} onChange={e => setMetrica(e.target.value as Metric)}>
           {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label></div>
         {index && cartogram && <div className="region-pills" aria-label="Regiões">{index.regioes.map(r => <button key={r.cd_regiao}
           aria-pressed={nav.level === 'regiao' && nav.cd_regiao === r.cd_regiao} onClick={() => navigate({ level: 'regiao', cd_regiao: r.cd_regiao })}>{r.nm_regiao}</button>)}</div>}
@@ -198,7 +188,7 @@ export default function App({ loader = defaultLoader }: { loader?: DataLoader })
             className={`territory-card ${nav.level === 'bairro' && nav.id_agregacao === r.id ? 'selected' : ''}`} aria-pressed={nav.level === 'bairro' && nav.id_agregacao === r.id}>
             <span className="territory-swatch" style={{ backgroundColor: color(measure(r.values, metric), min, max) }} /><small>{r.badge ?? 'Município'}</small>
             <strong>{r.name}</strong><span>{format(measure(r.values, metric), metric)}</span><code>{r.code}</code></button>) :
-            <div className="empty-map"><h2>Resumo disponível</h2><p>O desdobramento municipal não faz parte do recorte carregado.</p></div>}</div>}
+            <div className="empty-map"><h2>{demo ? 'Detalhamento municipal não disponível nesta amostra' : 'Resumo disponível'}</h2><p>O desdobramento municipal não faz parte do recorte carregado.</p></div>}</div>}
         <div className="map-footer"><div className="legend"><span>{format(numeric.length ? min : null, metric)}</span><i /><span>{format(numeric.length ? max : null, metric)}</span><em>■ sem dado</em></div>
           <p>{cartogram ? 'Cartograma esquemático de UFs. As posições não representam limites geográficos.' :
             'Visão tabular do território. A malha geográfica ainda não foi disponibilizada.'}</p>

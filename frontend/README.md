@@ -85,3 +85,31 @@ correspondência ficam sem grupo; associações duplicadas e códigos numéricos
 são recusados. O renderer futuro pode usar feature-state no MapLibre ou SVG,
 sem dissolve no cliente. O carregamento de geometria deve permanecer lazy
 por UF/município, com origem e release compatíveis com os dados tabulares.
+
+## Store geográfica compartilhada
+
+`src/store/useGeoStore.ts` usa Zustand com `GeoStoreProvider` (já instalado em
+App). `useGeoStore(selector)` compartilha ações e a métrica entre componentes.
+`createGeoStore()` permite testes sem React. A navegação permanece um único
+campo `navigation` discriminado, sem combinação de nível com IDs descendentes
+incompatíveis em campos paralelos.
+
+Ações: irParaPais, selecionarRegiao, selecionarUf, selecionarMunicipio,
+selecionarBairro, voltarNivel e setMetrica. As ações validam os valores originais
+antes de serializar na URL; não aplicam String(code). Registrar as associações
+UF/região do índice permite voltar à região correta mesmo após trocar de UF.
+O provider acompanha popstate e inicializa links profundos na montagem. A
+métrica persiste ao navegar e voltar; não é gravada nos query params.
+
+Métricas disponíveis: população, renda do responsável, PIB per capita, PIB
+em bilhões, cobertura de renda e quantidade de setores sob sigilo. A interface
+contém o botão Voltar nível, independente do histórico voltar/avançar do navegador.
+
+Os nomes IndicadoresCanonica, BairroAgregado, RegiaoResumo, UfIndiceItem,
+MunicipioResumoItem e MunicipioDetalhe são exportados como aliases dos schemas
+Zod, preservando uma única definição. total_bairros e total_setores nos resumos
+municipais são inteiros obrigatórios, como gerados pelo Python.
+
+As 25 UFs sem detalhe da demo (incluindo Amazonas) continuam mostrando resumo;
+a carga exige dados_disponiveis true e arquivo preenchido. O Vite já serve a
+árvore local sem duplicação no desenvolvimento; não é necessário criar symlink.

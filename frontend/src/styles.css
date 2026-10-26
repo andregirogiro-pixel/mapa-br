@@ -22,6 +22,8 @@ code, .eyebrow, .header-meta, .level-tag, .data-tag, .rank-number, .rank-value, 
 .toolbar { padding: 17px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #25323a; gap: 16px; }
 .breadcrumbs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; }
 .breadcrumbs button { border: 0; background: none; color: #a6c9ba; padding: 5px 0; }
+.breadcrumbs button.back-level { border: 1px solid #34494a; padding: 7px 10px; border-radius: 4px; margin-right: 8px; font-size: 10px; }
+.breadcrumbs button.back-level:disabled { opacity: .4; }
 .breadcrumbs > span { color: #70838f; }
 .breadcrumbs > span:last-child { color: #a3b5bd; }
 .toolbar select { font-size: 11px; width: 215px; }

@@ -7,6 +7,25 @@ export type Navigation =
   | { level: 'municipio'; cd_uf: string; cd_mun: string }
   | { level: 'bairro'; cd_uf: string; cd_mun: string; id_agregacao: string };
 
+export function validateNavigation(nav: Navigation): Navigation {
+  // A borda das ações valida os valores originais ANTES de URLSearchParams,
+  // que converteria números silenciosamente em texto.
+  switch (nav.level) {
+    case 'pais': return { level: nav.level };
+    case 'regiao': return { level: nav.level, cd_regiao: cdRegiaoSchema.parse(nav.cd_regiao) };
+    case 'uf': return { level: nav.level, cd_uf: cdUfSchema.parse(nav.cd_uf) };
+    case 'municipio': case 'bairro': {
+      const cd_uf = cdUfSchema.parse(nav.cd_uf);
+      const cd_mun = cdMunSchema.parse(nav.cd_mun);
+      if (!cd_mun.startsWith(cd_uf)) throw new Error('Município incompatível com a UF.');
+      if (nav.level === 'municipio') return { level: nav.level, cd_uf, cd_mun };
+      if (typeof nav.id_agregacao !== 'string' || !nav.id_agregacao.trim()) throw new Error('Identificador de grupo inválido.');
+      return { level: nav.level, cd_uf, cd_mun, id_agregacao: nav.id_agregacao };
+    }
+    default: throw new Error('Nível geográfico inválido.');
+  }
+}
+
 export function parseNavigation(search: string): Navigation {
   const query = new URLSearchParams(search);
   const level = query.get('level') ?? 'pais';
@@ -23,6 +42,7 @@ export function parseNavigation(search: string): Navigation {
 }
 
 export function navigationSearch(nav: Navigation): string {
-  if (nav.level === 'pais') return '';
-  return `?${new URLSearchParams(nav).toString()}`;
+  const clean = validateNavigation(nav);
+  if (clean.level === 'pais') return '';
+  return `?${new URLSearchParams(clean).toString()}`;
 }
