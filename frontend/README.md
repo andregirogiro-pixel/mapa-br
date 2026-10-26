@@ -98,11 +98,11 @@ Python e sem regenerar as fixtures.
 O mapa carrega UFs inicialmente, municípios somente ao abrir SP/SC e setores
 apenas ao abrir o município. Região filtra/ajusta a câmera às UFs correspondentes.
 UFs sem detalhe conservam seu resumo e polígono sintético sem fetch municipal.
-`promoteId` usa cd_uf, cd_mun ou CD_SETOR textual. `setFeatureState` atualiza cor,
+`promoteId` usa cd_uf, cd_mun ou cd_setor textual. `setFeatureState` atualiza cor,
 sigilo, cobertura e seleção. A seleção de bairro usa SEMPRE id_agregacao e
 acende todos os seus setores pelo join reverso, inclusive no fallback; não há
 dissolve no navegador. Contorno âmbar indica grupo com setores sob sigilo,
-contorno branco indica o grupo selecionado. Tooltip mostra cobertura conhecida
+contorno rosa indica o grupo selecionado. Tooltip mostra cobertura conhecida
 ou desconhecida; valores ausentes não viram zero.
 
 `demoGeometry.ts` recusa códigos numéricos, duplicatas, setores fora do município,
@@ -139,3 +139,30 @@ municipais são inteiros obrigatórios, como gerados pelo Python.
 As 25 UFs sem detalhe da demo (incluindo Amazonas) continuam mostrando resumo;
 a carga exige dados_disponiveis true e arquivo preenchido. O Vite já serve a
 árvore local sem duplicação no desenvolvimento; não é necessário criar symlink.
+
+## Componentes e métricas
+
+- `lib/geoStats.ts` centraliza o catálogo, a disponibilidade por nível,
+  formatação pt-BR, quantis interpolados (R-7) e bounding boxes, inclusive de
+  coleções de geometrias. Valores ausentes não viram zero ou sigilo; cobertura
+  conhecida parcial não arredonda para um falso 100%.
+- `MapViewport.tsx` mantém uma instância WebGL com três fontes locais
+  (ufs-source, municipios-source, setores-source). Mantém IDs textuais e limpa
+  feature-state ao trocar o recorte. Mudança de métrica atualiza cores sem
+  refazer fetch; selecionar grupo ajusta a câmera e destaca seus setores.
+- PIB continua selecionado na store ao entrar num município, mas a pintura e
+  o ranking de bairros usam renda do responsável, com aviso e legenda explícitos.
+  O KPI municipal de PIB continua válido; no bairro, PIB segue indisponível.
+  Voltar à UF retoma a pintura de PIB. O fallback não imputa renda ausente.
+- `AnalyticalSidebar.tsx` apresenta KPIs, ranking, dispersão e auditoria de
+  responsáveis, pesos, setores por média/massa e strings decimais exatas.
+  Universo suprimido é identificado como parcial, sem inventar totais.
+- `App.tsx` usa React Query por aplicação para índice e recorte selecionado,
+  delegando a cadeia índice → UF → município ao DataLoader validado. staleTime
+  e gcTime são Infinity durante a sessão, retry=1, sem refetch no foco. Os sinais
+  cancelam navegações antigas; networkMode=always permite servir localhost
+  mesmo quando navigator.onLine=false. Não há symlink nem segundo data loader.
+
+Após atualizar dependências: `npm ci`, `npm run dev`. Para regenerar fixtures e
+geometrias, execute os dois geradores Python na raiz; os caminhos Vite existentes
+já servem a árvore particionada e funcionam em subdiretórios de publicação.

@@ -231,3 +231,16 @@ python3 etl_pipeline/audits/verify_2022_sc.py
 
 Leia [a auditoria das fontes de 2022](etl_pipeline/IBGE_2022_AUDIT.md) e
 [o guia de execução e limitações](etl_pipeline/FETCHING_IBGE.md).
+
+## Componentes analíticos e métricas de mapa
+
+`frontend/src/lib/geoStats.ts` centraliza catálogo, quantis reais e formatação.
+`MapViewport` mantém três fontes GeoJSON com IDs textuais em uma instância WebGL;
+`AnalyticalSidebar` apresenta os indicadores e auditoria dos pesos/decimais.
+React Query coordena a carga validada e cancelável do DataLoader existente.
+
+Ao escolher PIB e entrar na visão de bairros/setores de um município, a pintura
+usa renda do responsável com aviso e legenda próprios. O seletor mantém PIB e
+volta a usá-lo ao retornar à UF. PIB dos bairros continua null. UFs sem detalhe
+continuam acessíveis por seus resumos, sem requisições municipais inexistentes.
+O Vite serve tudo localmente: não criar symlink em frontend/public/data.

@@ -232,9 +232,9 @@ Não adicionar API, geometrias ou novas fontes reais sem tarefa específica.
 - Se cobertura arredondada no JSON for 1, mas responsáveis válidos < total,
   usar os totais conhecidos e mostrar <100% quando necessário. Denominador
   suprimido continua cobertura desconhecida. Isso não imputa renda omitida.
-- DemoMap renderiza MapLibre com estilo local vazio, sem tiles/glyphs/sprites
+- MapViewport renderiza MapLibre com estilo local vazio, sem tiles/glyphs/sprites
   externos. O componente/biblioteca são carregados sob demanda. promoteId usa
-  cd_uf/cd_mun/CD_SETOR strings; feature-state colore indicadores e seleciona
+  cd_uf/cd_mun/cd_setor strings; feature-state colore indicadores e seleciona
   todos os setores do grupo via id_agregacao. Manter botões como alternativa
   acessível. Indicar sempre que são formas SINTÉTICAS, nunca limites oficiais.
 - build_demo_geometries.py lê SOMENTE fixtures simuladas, resolve caminhos
@@ -313,3 +313,24 @@ segunda raiz /data paralela à árvore já servida pelo Vite.
   textuais no schema original, conjuntos 1:1 sem duplicatas com TODOS os 16.736
   setores do básico SC (inclusive os 301 sem renda), prefixos e denylist compartilhada
   WATER_BODY_DENYLIST. Nunca testar completude só contra os 16.435 da renda.
+
+## Componentes de análise e React Query
+
+- geoStats.ts é o motor único de métricas visuais: catálogo, quantis reais R-7,
+  formatação e bounding box. Não chamar escala linear de quantis. Ausência não
+  comprova sigilo; escala vazia tem min/max null. Preservar cobertura desconhecida
+  e <100% quando há responsáveis excluídos conhecidos. Decimais exatos ficam texto.
+- App usa React Query por montagem, staleTime/gcTime Infinity, retry1 e
+  networkMode always (a demo local independe de navigator.onLine). Delegar carga
+  hierárquica ao DataLoader existente, com validação e AbortSignal. Não criar
+  caches paralelos de fetch sem validação nem symlink public/data.
+- MapViewport mantém uma instância e 3 fontes promoteId textual. Não recriar
+  WebGL nem refazer fetch ao trocar métrica. Limpar feature-state de recortes
+  antigos e abortar geometria pendente. cd_setor minúsculo é o campo da demo;
+  o helper de futura malha oficial continua aceitando CD_SETOR conforme a fonte.
+- PIB indisponível em bairros: metricaDoMapa aplica fallback para renda no mapa,
+  legenda/ranking intramunicipal e tooltip, com aviso; preserva a seleção da store
+  e o KPI municipal. Voltar à UF retoma PIB. Não pintar renda sob legenda de PIB.
+- AnalyticalSidebar concentra KPIs e auditoria, preservando totais desconhecidos
+  como ausência e valores exatos como strings. UFs sem detalhe permanecem
+  selecionáveis pelo resumo; não desabilitar acesso a essas 25 UFs.

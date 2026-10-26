@@ -28,7 +28,7 @@ class DemoGeometriesTest(unittest.TestCase):
                 groups = json.loads((self.data / f'municipios/{uf}/{code}.json').read_text())['municipio']['bairros']
                 sectors = json.loads((self.output / f'setores/{uf}/{code}.geojson').read_text())['features']
                 expected = {s: b['id_agregacao'] for b in groups for s in b['cd_setores']}
-                self.assertEqual({f['properties']['CD_SETOR']: f['properties']['id_agregacao'] for f in sectors}, expected)
+                self.assertEqual({f['properties']['cd_setor']: f['properties']['id_agregacao'] for f in sectors}, expected)
                 self.assertEqual(len(sectors), len(expected))
                 ring = municipality['geometry']['coordinates'][0]
                 xs, ys = [p[0] for p in ring], [p[1] for p in ring]

@@ -7,7 +7,7 @@
       "type": "Feature",
       "id": "420910200000004",
       "properties": {
-        "CD_SETOR": "420910200000004",
+        "cd_setor": "420910200000004",
         "cd_mun": "4209102",
         "cd_bairro": "4209102001",
         "id_agregacao": "bairro:4209102001",
@@ -46,7 +46,7 @@
       "type": "Feature",
       "id": "420910200000005",
       "properties": {
-        "CD_SETOR": "420910200000005",
+        "cd_setor": "420910200000005",
         "cd_mun": "4209102",
         "cd_bairro": "4209102001",
         "id_agregacao": "bairro:4209102001",
@@ -85,7 +85,7 @@
       "type": "Feature",
       "id": "420910200000001",
       "properties": {
-        "CD_SETOR": "420910200000001",
+        "cd_setor": "420910200000001",
         "cd_mun": "4209102",
         "cd_bairro": null,
         "id_agregacao": "demo:4209102:grupo-01",
@@ -124,7 +124,7 @@
       "type": "Feature",
       "id": "420910200000002A",
       "properties": {
-        "CD_SETOR": "420910200000002A",
+        "cd_setor": "420910200000002A",
         "cd_mun": "4209102",
         "cd_bairro": null,
         "id_agregacao": "demo:4209102:grupo-01",
@@ -163,7 +163,7 @@
       "type": "Feature",
       "id": "420910200000003",
       "properties": {
-        "CD_SETOR": "420910200000003",
+        "cd_setor": "420910200000003",
         "cd_mun": "4209102",
         "cd_bairro": null,
         "id_agregacao": "demo:4209102:grupo-01",

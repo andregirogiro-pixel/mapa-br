@@ -16,12 +16,13 @@ export async function loadDemoGeometry(loader: DataLoader, data: LoadedData, nav
   if (data.index.metadata.tipo_dados !== 'simulados') throw new Error('Geometria sintética exige fixtures simuladas.');
   const municipal = nav.level === 'municipio' || nav.level === 'bairro';
   const state = nav.level === 'uf' && data.uf;
-  const field = municipal ? 'CD_SETOR' : state ? 'cd_mun' : 'cd_uf';
+  const field = municipal ? 'cd_setor' : state ? 'cd_mun' : 'cd_uf';
   const file = municipal ? `setores/${nav.cd_uf}/${nav.cd_mun}.geojson` : state ? `municipios/${nav.cd_uf}.geojson` : 'ufs.geojson';
   const root = new URL(`${import.meta.env.BASE_URL}geo/demo/`, document.baseURI);
   const parsed = collectionSchema.parse(await loader.request(new URL(file, root).href, signal, raw => collectionSchema.parse(raw)));
   const expected = municipal ? buildSectorToGroupMap(data.municipio!.municipio.bairros) :
     new Map((state ? data.uf!.municipios_resumo.map(m => m.cd_mun) : data.index.ufs.map(u => u.metadata.cd_uf)).map(code => [code, code]));
+  const groups = new Map(data.municipio?.municipio.bairros.map(b => [b.id_agregacao, b]));
   const seen = new Set<string>();
   for (const f of parsed.features) {
     const code = (municipal ? cdSetorSchema : state ? cdMunSchema : cdUfSchema).parse(f.properties[field]);
@@ -29,7 +30,7 @@ export async function loadDemoGeometry(loader: DataLoader, data: LoadedData, nav
     if (municipal && (f.properties.cd_mun !== nav.cd_mun || f.properties.id_agregacao !== expected.get(code))) throw new Error('Setor incompatível com município/grupo.');
     if (!municipal && !state && f.properties.cd_regiao !== data.index.ufs.find(u => u.metadata.cd_uf === code)?.metadata.cd_regiao) throw new Error('UF geométrica fora da região declarada.');
     if (municipal) {
-      const group = data.municipio!.municipio.bairros.find(b => b.id_agregacao === expected.get(code))!;
+      const group = groups.get(expected.get(code)!)!;
       if (f.properties.cd_bairro !== group.cd_bairro || f.properties.origem_malha !== group.origem_malha) throw new Error('Malha incompatível com o grupo.');
     }
     if (state && f.properties.cd_uf !== nav.cd_uf) throw new Error('Município geométrico fora da UF.');

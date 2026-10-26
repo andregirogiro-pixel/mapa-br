@@ -86,7 +86,7 @@ def build_demo_geo(processed_dir: Path, geo_out_dir: Path) -> list[Path]:
                     if code in seen or not code.startswith(mun):
                         raise ValueError("Setor duplicado ou fora do município")
                     k = len(seen); seen.add(code)
-                    sectors.append(feature(code, {"CD_SETOR": code, "cd_mun": mun,
+                    sectors.append(feature(code, {"cd_setor": code, "cd_mun": mun,
                         "cd_bairro": group["cd_bairro"], "id_agregacao": group["id_agregacao"],
                         "nm_bairro": group["nm_bairro"], "origem_malha": group["origem_malha"]},
                         rect_polygon(mx + size*.05 + k % scols*step, my + size*.05 + k // scols*step, step*.85, step*.85)))

@@ -71,6 +71,7 @@ test('MapLibre offline: malhas lazy, clique setorial e métrica sem rede externa
   await page.goto('/');
   const map = page.getByTestId('demo-map');
   await expect(map).toHaveAttribute('data-ready', 'true');
+  const originalCanvas = await map.locator('canvas').elementHandle();
   expect(geometries).toEqual(['/geo/demo/ufs.geojson']);
   await page.getByRole('combobox', { name: 'Selecionar UF' }).selectOption('42');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Santa Catarina');
@@ -96,4 +97,27 @@ test('MapLibre offline: malhas lazy, clique setorial e métrica sem rede externa
   await expect(map).toHaveAttribute('data-ready', 'true');
   expect(geometries).toHaveLength(count);
   expect(external).toEqual([]);
+  expect(await originalCanvas!.evaluate(canvas => canvas.isConnected)).toBe(true);
+  await expect(map.locator('canvas')).toHaveCount(1);
+});
+
+
+test('PIB é preservado no seletor e usa renda na pintura intramunicipal com navegador offline', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'onLine', { get: () => false }));
+  await page.goto('/?level=uf&cd_uf=42');
+  const panel = page.getByRole('region', { name: 'Exploração territorial' });
+  await panel.getByRole('button', { name: /Florianópolis/ }).waitFor();
+  await page.getByRole('combobox', { name: 'Colorir por' }).selectOption('pib_per_capita');
+  await panel.getByRole('button', { name: /Florianópolis/ }).click();
+  await expect(page.getByText(/O IBGE não calcula PIB para bairros/)).toBeVisible();
+  await expect(page.getByTestId('demo-map')).toHaveAttribute('data-ready', 'true');
+  await expect(page.getByRole('combobox', { name: 'Colorir por' })).toHaveValue('pib_per_capita');
+  await panel.getByRole('button', { name: /Área sem bairro oficial/ }).click();
+  await expect(page.getByText('420540700000002A', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('demo-map')).toHaveAttribute('data-ready', 'true');
+  await page.getByRole('button', { name: /Voltar nível/ }).click();
+  await page.getByRole('button', { name: /Voltar nível/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Santa Catarina');
+  await expect(page.getByText(/O IBGE não calcula PIB para bairros/)).toHaveCount(0);
+  await expect(panel.getByText('PIB por habitante · quantis')).toBeVisible();
 });

@@ -5,7 +5,7 @@ import App from './App';
 import { DataLoader } from './services/dataLoader';
 import { base, fixtureFetcher } from './test/fixtures';
 
-vi.mock('./components/DemoMap', () => ({ default: () => null }));
+vi.mock('./components/MapViewport', () => ({ default: () => null }));
 
 beforeEach(() => window.history.replaceState(null, '', '/'));
 describe('drill-down interativo', () => {
@@ -63,4 +63,23 @@ describe('drill-down interativo', () => {
     await waitFor(() => expect(window.location.search).toBe(''));
     expect(screen.getByRole('combobox', { name: 'Colorir por' })).toHaveValue('pib_total_bi');
   });
+  it('avisa o fallback de PIB nos setores e retoma a métrica ao voltar à UF', async () => {
+    window.history.replaceState(null, '', '?level=uf&cd_uf=42');
+    const user = userEvent.setup(); const fetcher = fixtureFetcher();
+    render(<App loader={new DataLoader(`${base}brasil.json`, fetcher)} />);
+    const panel = screen.getByRole('region', { name: 'Exploração territorial' });
+    await within(panel).findByRole('button', { name: /Florianópolis/ });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Colorir por' }), 'pib_per_capita');
+    await user.click(within(panel).getByRole('button', { name: /Florianópolis/ }));
+    await screen.findByText(/O IBGE não calcula PIB para bairros/);
+    expect(screen.getByRole('combobox', { name: 'Colorir por' })).toHaveValue('pib_per_capita');
+    expect(within(panel).getByText('Renda do responsável · quantis')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Auditoria de agregação' })).toHaveTextContent('Peso com renda divulgada');
+    await user.click(screen.getByRole('button', { name: /Voltar nível/ }));
+    await within(panel).findByRole('button', { name: /Florianópolis/ });
+    expect(screen.queryByText(/O IBGE não calcula PIB para bairros/)).not.toBeInTheDocument();
+    expect(within(panel).getByText('PIB por habitante · quantis')).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+
 });

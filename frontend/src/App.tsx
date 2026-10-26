@@ -1,63 +1,38 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { DataLoader } from './services/dataLoader';
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnalyticalSidebar } from './components/AnalyticalSidebar';
+import { METRICAS_CATALOGO, CHOROPLETH_COLORS as palette, criarEscalaCoropletica, metricaDoMapa, formatarValorIndicador as format, extrairValorMetrica as measure } from './lib/geoStats';
+import type { TerritoryRow as Row } from './lib/geoStats';
 import type { LoadedData } from './services/dataLoader';
 import { buildSectorToGroupMap } from './services/sectorJoin';
 import { navigationSearch } from './state/navigation';
 import type { Navigation } from './state/navigation';
-import type { BrasilPayload, IndicadoresMacroECenso } from './types/contract';
 import { GeoStoreProvider, useGeoStore } from './store/useGeoStore';
 import type { MetricaAtiva } from './store/useGeoStore';
 import './styles.css';
 
-const DemoMap = lazy(() => import('./components/DemoMap'));
+const MapViewport = lazy(() => import('./components/MapViewport'));
 
 const defaultUrl = new URL(import.meta.env.VITE_DATA_URL || 'data/processed/brasil.json',
   new URL(import.meta.env.BASE_URL, document.baseURI)).href;
 const defaultLoader = new DataLoader(defaultUrl);
 type Metric = MetricaAtiva;
-const metricLabels: Record<Metric, string> = {
-  populacao: 'População', pib_per_capita: 'PIB por habitante',
-  renda_media_responsavel: 'Renda do responsável', cobertura_renda_proporcao: 'Cobertura da renda',
-  pib_total_bi: 'PIB total (bilhões)', setores_sob_sigilo: 'Setores sob sigilo',
-};
+const metricLabels = Object.fromEntries(Object.entries(METRICAS_CATALOGO).map(([id, meta]) => [id, meta.label])) as Record<Metric, string>;
 const number = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
-const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 });
-const percent = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 2 });
-const format = (value: number | null | undefined, metric: Metric = 'populacao') => value == null ? '—' :
-  metric === 'populacao' || metric === 'setores_sob_sigilo' ? number.format(value) : metric === 'cobertura_renda_proporcao' ?
-    (value < 1 && percent.format(value) === percent.format(1) ? '< 100%' : percent.format(value)) : metric === 'pib_total_bi' ? `${money.format(value)} bi` : money.format(value);
-function measure(values: IndicadoresMacroECenso | null | undefined, metric: Metric): number | null {
-  if (!values) return null;
-  if (metric === 'cobertura_renda_proporcao') {
-    if ((values.setores_universo_renda_suprimido ?? 0) > 0) return null;
-    if (values.responsaveis_renda && values.responsaveis_com_renda !== null) {
-      return values.responsaveis_com_renda / values.responsaveis_renda;
-    }
-  }
-  return values[metric];
-}
-interface Row { id: string; name: string; code: string; values: IndicadoresMacroECenso | null; nav: Navigation; badge?: string }
-
 type Resource = { key: string; status: 'loading' | 'error' | 'ready'; data?: LoadedData; error?: string };
 function useData(loader: DataLoader, nav: Navigation) {
-  const key = navigationSearch(nav);
-  const [attempt, setAttempt] = useState(0);
-  const [index, setIndex] = useState<BrasilPayload>();
-  const [resource, setResource] = useState<Resource>({ key, status: 'loading' });
-  useEffect(() => {
-    const controller = new AbortController();
-    setResource({ key, status: 'loading' });
-    void loader.load(nav, controller.signal).then(data => {
-      if (!controller.signal.aborted) { setIndex(data.index); setResource({ key, status: 'ready', data }); }
-    }, error => {
-      if (!controller.signal.aborted) setResource({ key, status: 'error', error:
-        error instanceof Error && error.name !== 'ZodError' ? error.message : 'Os dados recebidos são incompatíveis com esta visualização.' });
-    });
-    return () => controller.abort();
-    // A representação canônica inclui todos os campos da união discriminada.
-  }, [loader, key, attempt]);
-  return { index, resource: resource.key === key ? resource : { key, status: 'loading' } as Resource,
-    retry: () => { loader.clear(); setAttempt(a => a + 1); } };
+  const client = useQueryClient();
+  const country = useQuery({ queryKey: ['brasil', loader.indexUrl], queryFn: ({ signal }) => loader.load({ level: 'pais' }, signal) });
+  const selected = useQuery({ queryKey: ['recorte', loader.indexUrl, navigationSearch(nav)],
+    queryFn: ({ signal }) => loader.load(nav, signal), enabled: nav.level !== 'pais' && !!country.data });
+  const query = nav.level === 'pais' ? country : selected;
+  const error = country.error ?? query.error;
+  const resource: Resource = { key: navigationSearch(nav), status: error ? 'error' : query.isPending ? 'loading' : 'ready',
+    data: error ? undefined : query.data,
+    error: error instanceof Error && error.name !== 'ZodError' ? error.message : error ? 'Os dados recebidos são incompatíveis com esta visualização.' : undefined };
+  return { index: country.data?.index, resource,
+    retry: () => { loader.clear(); void client.resetQueries(); } };
 }
 
 const position: Record<string, [number, number]> = {
@@ -67,47 +42,11 @@ const position: Record<string, [number, number]> = {
   DF: [4, 4], MS: [2, 4], MG: [4, 5], ES: [5, 5], SP: [3, 6], RJ: [5, 6],
   PR: [2, 6], SC: [2, 7], RS: [1, 8],
 };
-const palette = ['#15362f', '#205747', '#317b60', '#4da47d', '#80d6a3'];
-function color(value: number | null | undefined, min: number, max: number) {
-  if (value == null) return '#26313b';
-  return palette[Math.min(4, Math.floor((max === min ? 0.5 : (value - min) / (max - min)) * 4))] || '#15362f';
-}
-
-function Scatter({ rows, select }: { rows: Row[]; select: (nav: Navigation) => void }) {
-  const points = rows.filter(r => r.values?.renda_media_responsavel != null);
-  const maxPop = Math.max(1, ...points.map(r => r.values!.populacao));
-  const maxIncome = Math.max(1, ...points.map(r => r.values!.renda_media_responsavel!));
-  return <section className="chart"><div className="section-heading"><h3>População × renda</h3><span>mesmo universo de renda</span></div>
-    {points.length < 2 ? <p className="muted">São necessários dois territórios com renda divulgada para comparar.</p> :
-      <svg viewBox="0 0 420 170" role="group" aria-label="Dispersão: população e renda do responsável">
-        {[30, 70, 110].map(y => <line key={y} x1="35" x2="400" y1={y} y2={y} className="chart-grid" />)}
-        <text x="35" y="15">RENDA DO RESPONSÁVEL</text><text x="310" y="164">POPULAÇÃO →</text>
-        {points.map(r => <g key={r.id} role="button" tabIndex={0} aria-label={`Explorar ${r.name}`} onClick={() => select(r.nav)}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(r.nav); } }}>
-          <circle cx={40 + r.values!.populacao / maxPop * 345} cy={138 - r.values!.renda_media_responsavel! / maxIncome * 105} r="6">
-            <title>{r.name}: {format(r.values!.renda_media_responsavel, 'renda_media_responsavel')}</title>
-          </circle>
-        </g>)}
-      </svg>}
-  </section>;
-}
-
-function Quality({ values }: { values: IndicadoresMacroECenso }) {
-  const unknown = (values.setores_universo_renda_suprimido ?? 0) > 0;
-  const suppressed = (values.setores_sob_sigilo ?? 0) > 0;
-  const coverage = measure(values, 'cobertura_renda_proporcao');
-  return <section className={`quality ${unknown || suppressed ? 'quality-warning' : ''}`}>
-    <div><span className="eyebrow">COBERTURA DA RENDA</span><strong>{format(coverage, 'cobertura_renda_proporcao')}</strong></div>
-    <p>{unknown ? 'Parte do denominador está sob sigilo. A cobertura total é desconhecida.' : suppressed ?
-      `${number.format(values.setores_sob_sigilo!)} ${values.setores_sob_sigilo === 1 ? 'setor' : 'setores'} sob sigilo. A média considera somente a parcela com renda divulgada.` :
-      values.cobertura_renda_proporcao === null ? 'Sem base suficiente para calcular a cobertura de renda.' :
-      'A cobertura se refere ao universo dos responsáveis, não ao total físico de domicílios.'}</p>
-    <div className="coverage-track"><i style={{ width: `${(coverage ?? 0) * 100}%` }} /></div>
-  </section>;
-}
-
 export default function App({ loader = defaultLoader }: { loader?: DataLoader }) {
-  return <GeoStoreProvider><Explorer loader={loader} /></GeoStoreProvider>;
+  const [client] = useState(() => new QueryClient({ defaultOptions: { queries: {
+    staleTime: Infinity, gcTime: Infinity, retry: 1, refetchOnWindowFocus: false, networkMode: 'always',
+  } } }));
+  return <QueryClientProvider client={client}><GeoStoreProvider><Explorer loader={loader} /></GeoStoreProvider></QueryClientProvider>;
 }
 function Explorer({ loader }: { loader: DataLoader }) {
   const { navigation: nav, routeError, navigate, metrica: metric, setMetrica,
@@ -142,11 +81,12 @@ function Explorer({ loader }: { loader: DataLoader }) {
     nav: { level: 'bairro', cd_uf: nav.cd_uf, cd_mun: nav.cd_mun, id_agregacao: b.id_agregacao },
     badge: b.origem_malha === 'ibge_bairro_oficial' ? 'Bairro oficial' : 'Setores agregados',
   }));
-  const numeric = rows.flatMap(r => measure(r.values, metric) === null ? [] : [measure(r.values, metric)!]);
-  const min = numeric.length ? Math.min(...numeric) : 0;
-  const max = numeric.length ? Math.max(...numeric) : 0;
+  const mapMetric = metricaDoMapa(nav, metric);
+  const colorRows = rows.length ? rows : ufEntry ? [{ values: ufEntry.resumo_uf }] : [];
+  const numeric = colorRows.flatMap(r => measure(r.values, mapMetric) === null ? [] : [measure(r.values, mapMetric)!]);
+  const { obterCor: color, min, max } = criarEscalaCoropletica(numeric);
   const ranking = [...rows].filter(r => `${r.name} ${r.code}`.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')))
-    .sort((a, b) => (measure(b.values, metric) ?? -1) - (measure(a.values, metric) ?? -1) || a.name.localeCompare(b.name, 'pt-BR'));
+    .sort((a, b) => (measure(b.values, mapMetric) ?? -1) - (measure(a.values, mapMetric) ?? -1) || a.name.localeCompare(b.name, 'pt-BR'));
   const cartogram = nav.level === 'pais' || nav.level === 'regiao';
   const positions = rows.map(r => position[r.code]).filter((p): p is [number, number] => Boolean(p));
   const left = positions.length ? Math.min(...positions.map(p => p[0])) : 0;
@@ -177,67 +117,38 @@ function Explorer({ loader }: { loader: DataLoader }) {
         <div className="map-heading"><div><span className="eyebrow">EXPLORAÇÃO TERRITORIAL / {nav.level.toUpperCase()}</span><h1>{title ?? 'Carregando território…'}</h1></div>
           <span className="level-tag">{({ pais: '01', regiao: '02', uf: '03', municipio: '04', bairro: '05' })[nav.level]} / 05</span></div>
         <div className="map-controls"><label>Colorir por <select value={metric} onChange={e => setMetrica(e.target.value as Metric)}>
-          {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label></div>
+          {Object.entries(metricLabels).map(([key, label]) => <option key={key} value={key}>{label}{!METRICAS_CATALOGO[key as Metric].disponivelEmBairro ? ' (Até Município)' : ''}</option>)}</select></label></div>
+        <p className="muted">{METRICAS_CATALOGO[metric].descricao}</p>
+        {metric !== mapMetric && <p role="status" className="metric-fallback">O IBGE não calcula PIB para bairros/setores. O mapa e a comparação intramunicipal usam Renda do responsável. A seleção de PIB será retomada ao voltar à UF.</p>}
         {index && cartogram && <div className="region-pills" aria-label="Regiões">{index.regioes.map(r => <button key={r.cd_regiao}
           aria-pressed={nav.level === 'regiao' && nav.cd_regiao === r.cd_regiao} onClick={() => navigate({ level: 'regiao', cd_regiao: r.cd_regiao })}>{r.nm_regiao}</button>)}</div>}
-        {data && demo && <Suspense fallback={<p role="status">Preparando mapa local…</p>}><DemoMap loader={loader} data={data} nav={nav} select={navigate}
+        {index && demo && <Suspense fallback={<p role="status">Preparando mapa local…</p>}><MapViewport loader={loader} data={data} nav={nav} select={navigate} metric={mapMetric}
           rows={(rows.length ? rows : ufEntry ? [{ id: ufEntry.metadata.cd_uf, name: ufEntry.metadata.nm_uf,
             values: ufEntry.resumo_uf, nav: { level: 'uf' as const, cd_uf: ufEntry.metadata.cd_uf } }] : []).map(r => ({
-              id: r.id, name: r.name, nav: r.nav, fill: color(measure(r.values, metric), min, max),
+              id: r.id, name: r.name, nav: r.nav, fill: color(measure(r.values, mapMetric)),
               sigilo: (r.values?.setores_sob_sigilo ?? 0) > 0,
+              value: format(measure(r.values, mapMetric), mapMetric),
               coverage: measure(r.values, 'cobertura_renda_proporcao'),
             }))} /></Suspense>}
         {resource.status === 'loading' ? <div className="empty-map" role="status"><span className="loading-pulse" />Carregando o recorte selecionado…</div> :
           resource.status === 'error' ? <div className="empty-map" role="alert"><h2>Não foi possível abrir este recorte</h2><p>{resource.error}</p><button onClick={retry}>Tentar novamente</button><button onClick={() => navigate({ level: 'pais' })}>Voltar ao Brasil</button></div> :
           cartogram ? <div className="cartogram-wrap"><div className="cartogram" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-            {rows.map(r => { const p = position[r.code]; const shade = color(measure(r.values, metric), min, max); return p ? <button key={r.id} className="uf-tile" aria-label={`${r.name} (${r.code})`}
+            {rows.map(r => { const p = position[r.code]; const shade = color(measure(r.values, mapMetric)); return p ? <button key={r.id} className="uf-tile" aria-label={`${r.name} (${r.code})`}
               onClick={() => navigate(r.nav)} style={{ gridColumn: p[0] - left + 1, gridRow: p[1] - top + 1, backgroundColor: shade, color: palette.slice(3).includes(shade) ? '#071c14' : '#effff6' }}>
               <strong>{r.code}</strong><small>{r.badge === 'Detalhe disponível' ? '↳' : '·'}</small></button> : null; })}
           </div></div> : <div className="territory-cards">{rows.length ? rows.map(r => <button key={r.id} onClick={() => navigate(r.nav)}
             className={`territory-card ${nav.level === 'bairro' && nav.id_agregacao === r.id ? 'selected' : ''}`} aria-pressed={nav.level === 'bairro' && nav.id_agregacao === r.id}>
-            <span className="territory-swatch" style={{ backgroundColor: color(measure(r.values, metric), min, max) }} /><small>{r.badge ?? 'Município'}</small>
-            <strong>{r.name}</strong><span>{format(measure(r.values, metric), metric)}</span><code>{r.code}</code></button>) :
+            <span className="territory-swatch" style={{ backgroundColor: color(measure(r.values, mapMetric)) }} /><small>{r.badge ?? 'Município'}</small>
+            <strong>{r.name}</strong><span>{format(measure(r.values, mapMetric), mapMetric)}</span><code>{r.code}</code></button>) :
             <div className="empty-map"><h2>{demo ? 'Detalhamento municipal não disponível nesta amostra' : 'Resumo disponível'}</h2><p>O desdobramento municipal não faz parte do recorte carregado.</p></div>}</div>}
-        <div className="map-footer"><div className="legend"><span>{format(numeric.length ? min : null, metric)}</span><i /><span>{format(numeric.length ? max : null, metric)}</span><em>■ sem dado</em></div>
+        <div className="map-footer"><strong>{METRICAS_CATALOGO[mapMetric].label} · quantis</strong><div className="legend"><span>{format(min, mapMetric)}</span><i style={{ background: `linear-gradient(90deg, ${palette.flatMap((color, i) => [`${color} ${i * 100 / palette.length}%`, `${color} ${(i + 1) * 100 / palette.length}%`]).join(", ")})` }} /><span>{format(max, mapMetric)}</span><em>■ sem dado</em></div>
           <p>{cartogram ? 'Navegação por botões. Geometrias da demonstração são sintéticas.' :
             'Lista de territórios. Limites oficiais ainda não foram disponibilizados.'}</p>
           {reverse && <span className="map-note">{number.format(reverse.size)} setores vinculados aos grupos deste município</span>}</div>
       </section>
-      <aside className="analytics" aria-label="Painel analítico">
-        <div className="section-heading"><div><span className="eyebrow">LEITURA DO TERRITÓRIO</span><h2>{title ?? 'Indicadores'}</h2></div><span className="data-tag">{demo ? 'SIMULAÇÃO' : 'RECORTE'}</span></div>
-        {data && values ? <>
-          {bairro && <div className="origin-badge">{bairro.origem_malha === 'ibge_bairro_oficial' ? 'Bairro Oficial IBGE' : 'Agrupamento de Setores por Subdistrito/Distrito'}</div>}
-          <div className="indicator-grid">
-            <article><span>População</span><strong>{format(values.populacao)}</strong><small>pessoas no recorte</small></article>
-            <article><span>Renda do responsável</span><strong>{format(values.renda_media_responsavel, 'renda_media_responsavel')}</strong><small>BRL / responsável / mês</small></article>
-            <article><span>PIB por habitante</span><strong>{format(values.pib_per_capita, 'pib_per_capita')}</strong><small>{values.pib_per_capita == null ? 'não disponível neste nível' : 'BRL / pessoa / ano'}</small></article>
-            <article><span>Índice de Gini</span><strong>{values.gini == null ? '—' : values.gini.toLocaleString('pt-BR')}</strong><small>{values.gini == null ? 'distribuição não disponível' : 'escala de 0 a 1'}</small></article>
-          </div>
-          <Quality values={values} />
-          {nav.level === 'municipio' && data.uf && values.pib_mil_reais != null && data.uf.resumo_uf.pib_mil_reais ?
-            <p className="share">{percent.format(values.pib_mil_reais / data.uf.resumo_uf.pib_mil_reais)} do PIB do recorte estadual</p> : null}
-          {bairro ? <section className="sector-list"><div className="section-heading"><h3>Setores que compõem o grupo</h3><span>{bairro.total_setores} setores</span></div>
-            <ul>{bairro.cd_setores.map(code => <li key={code}><code>{code}</code><span>vinculado</span></li>)}</ul>
-            <p className="muted">A seleção usa o identificador do grupo, inclusive quando não há código de bairro oficial.</p></section> : <>
-            <section className="ranking"><div className="section-heading"><h3>{nav.level === 'pais' || nav.level === 'regiao' ? 'Comparar UFs' : nav.level === 'uf' ? 'Comparar municípios' : 'Bairros e agrupamentos'}</h3><span>{rows.length} territórios</span></div>
-              {rows.length > 0 && <input aria-label="Buscar território" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar nome ou código…" />}
-              <div className="ranking-label"><span>TERRITÓRIO</span><span>{metricLabels[metric].toUpperCase()}</span></div>
-              <div className="ranking-rows">{ranking.map((r, i) => <button key={r.id} className="ranking-row" onClick={() => navigate(r.nav)}>
-                <span className="rank-number">{String(i + 1).padStart(2, '0')}</span><span className="rank-name"><strong>{r.name}</strong><small>{r.badge ?? r.code}</small></span>
-                <span className="rank-value">{format(measure(r.values, metric), metric)}<i style={{ width: `${max && measure(r.values, metric) != null ? measure(r.values, metric)! / max * 100 : 0}%` }} /></span><span>↗</span>
-              </button>)}{!ranking.length && <p className="muted">{rows.length ? 'Nenhum território corresponde à busca.' : 'Sem desdobramento neste recorte.'}</p>}</div>
-            </section><Scatter rows={rows} select={navigate} />
-          </>}
-          <details className="source-details"><summary>Fonte, períodos e rastreabilidade</summary>
-            <p>{data.index.metadata.aviso}</p><p>Universo: {data.index.metadata.universo_renda}</p>
-            <p>Renda: {data.index.metadata.indicadores.renda_media_responsavel?.periodo_referencia ?? 'sem período estatístico real'} · PIB: {data.index.metadata.indicadores.pib_mil_reais?.periodo_referencia ?? 'sem período estatístico real'}</p>
-            <p>Domicílios físicos: {format(values.domicilios)} · responsáveis com renda: {format(values.responsaveis_com_renda)} / {format(values.responsaveis_renda)}</p>
-            <p>Massa de renda considerada: <code>{values.massa_rendimento_considerada ?? 'indisponível'}</code> BRL/mês</p>
-            <p>PIB exato: <code>{values.pib_mil_reais_exato ?? 'indisponível'}</code> mil BRL</p>
-            {bairro && <code>{bairro.id_agregacao}</code>}
-          </details>
-        </> : <p className="muted">{resource.status === 'ready' ? 'Não há indicadores para este recorte.' : 'Os indicadores aparecerão após o carregamento do território.'}</p>}
-      </aside>
+      <AnalyticalSidebar data={data} values={values} bairro={bairro} title={title} nav={nav} demo={demo}
+        rows={rows} ranking={ranking} metric={mapMetric} search={search} setSearch={setSearch}
+        navigate={navigate} resourceStatus={resource.status} max={max ?? 0} />
     </main><footer className="page-footer"><span>MAPA BR / TERRITÓRIO EM PERSPECTIVA</span><span>País → Região → UF → Município → Bairro / Setor</span></footer>
   </div>;
 }
