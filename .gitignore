@@ -18,6 +18,8 @@ build/
 coverage/
 .vite/
 *.tsbuildinfo
+test-results/
+playwright-report/
 
 # Credentials and local configuration
 .env

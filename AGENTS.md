@@ -2,11 +2,12 @@
 
 ## Arquitetura e execução
 
-- Monorepo: `etl_pipeline/` (Python 3.11+), `frontend/` (futuro React + Vite),
+- Monorepo: `etl_pipeline/` (Python 3.11+), `frontend/` (React + Vite + TypeScript estrito),
   `data/processed/` (JSONs estáticos) e `notebooks/` (exploração).
 - Navegação: País → Região → UF → Município → Bairro/Setor.
   Interface planejada: mapa à esquerda e painel analítico à direita, tema escuro.
-  Frontend, API e geometria ainda não foram implementados. O adaptador local
+  O frontend tem cinco níveis, URL compartilhável e cartograma explícito.
+  API e geometria real ainda não foram implementadas. O adaptador local
   de arquivos reais está em `02_ingest_ibge_real.py`; não baixa bases.
 - Usar o checkout existente. Cada tarefa cloud já é isolada; não criar worktrees
   sem pedido explícito. Não versionar credenciais nem dados brutos pesados.
@@ -164,7 +165,7 @@ normalizados e números finitos, sem serializar. write_payload usa json.dump uma
 A publicação do lote inteiro não é transacional. build processa um detalhe
 municipal por vez, retendo somente resumos e caminhos; não mantém todos os
 bairros/setores nacionais em memória. Atualizar testes e JSONs ao mudar contrato.
-Não adicionar frontend, API, geometria ou ingestão real sem tarefa específica.
+Não adicionar API, geometrias ou novas fontes reais sem tarefa específica.
 
 ## Adaptação de fontes reais
 
@@ -198,3 +199,40 @@ Não adicionar frontend, API, geometria ou ingestão real sem tarefa específica
 - SQLite temporário aceita entrada fora de ordem, com setores em disco e carga
   de um município por vez. Destino novo/vazio por release; arquivos antigos não
   são apagados automaticamente. Escrita é atômica por arquivo, não por lote.
+
+## Frontend: contrato, navegação e geometrias
+
+- Ler frontend/README.md para executar. Node >=22.12, validado em Node 24;
+  usar npm ci com o lockfile. Comandos em frontend/: npm run dev, npm test,
+  npm run build e npm run test:e2e (após build; requer Chromium).
+- src/types/contract.ts valida JSON em runtime com Zod e espelha as 19 chaves
+  do motor Python, obrigatórias e nullable onde necessário. strictNullChecks
+  está habilitado. Não converter IDs em números. Textos decimais exatos ficam
+  como texto; os cálculos visuais usam somente projeções numéricas.
+- Resolver arquivo relativo sempre por new URL(arquivo, parentFileUrl).
+  Municipio.arquivo se refere ao JSON de UF, não à raiz dos dados. Não usar
+  concatenação da raiz para os descendentes. Carregar país primeiro, UF sob
+  demanda e detalhe municipal só depois da seleção correspondente.
+- DataLoader mantém Map de Promises por URL. Erros saem do cache. Cada consumidor
+  tem sinal próprio; só abortar o transporte compartilhado quando não restarem
+  consumidores. Limpeza dos efeitos aborta navegações antigas e impede resposta
+  tardia de publicar seleção obsoleta. Recarregar a página ao trocar releases.
+- Navegação é união discriminada pais/regiao/uf/municipio/bairro, sincronizada
+  com query params e popstate. Trocar UF substitui o estado e limpa descendentes.
+  Validar links profundos, prefixos e pertencimento dos registros ao pai.
+- No nível 5, usar SEMPRE id_agregacao como key e seleção, nunca cd_bairro.
+  Mostrar origem, sigilo, cobertura desconhecida e os códigos dos setores.
+  Renda do responsável não é renda domiciliar. Null não vira zero.
+- Se cobertura arredondada no JSON for 1, mas responsáveis válidos < total,
+  usar os totais conhecidos e mostrar <100% quando necessário. Denominador
+  suprimido continua cobertura desconhecida. Isso não imputa renda omitida.
+- A interface atual exibe cartograma esquemático de UFs e cartões territoriais;
+  não há polígonos oficiais ou zoom geográfico real. Não confundir os retângulos
+  com limites territoriais. buildSectorToGroupMap/groupForSectorFeature preparam
+  o join reverso CD_SETOR (string) -> id_agregacao para uma malha municipal
+  futura, atendendo oficial/fallback sem dissolve. Recusar setores duplicados
+  e códigos numéricos; features sem vínculo não herdam um grupo arbitrário.
+- O build copia dados em partições fora do bundle. O dev serve a mesma árvore.
+  MAPA_BR_DATA_DIR seleciona outra árvore local; VITE_DATA_URL muda o índice
+  remoto e VITE_BASE_PATH muda o prefixo de publicação. Não importar todos os
+  JSONs no código da aplicação (fixtures de testes são a única exceção).

@@ -1,8 +1,9 @@
 # mapa-br
 
 Base de uma plataforma analítica do Brasil: País → Região → UF → Município →
-Bairro/Setor. Há um gerador offline de demonstração; frontend React, API,
-geometrias e download automático do Censo ainda não foram implementados.
+Bairro/Setor. Há um frontend React + Vite com navegação dos cinco níveis,
+cartograma de UFs, painel analítico e um gerador offline de demonstração.
+API, geometrias reais e download automático do Censo ainda não foram implementados.
 O adaptador `02_ingest_ibge_real.py` processa arquivos locais via manifesto explícito.
 
 ## Gerar e testar
@@ -44,7 +45,7 @@ Somente o detalhe municipal contém `bairros` e `cd_setores`.
 Migração do 1.1: `municipios` com bairros embutidos saiu do arquivo de UF;
 passou a `municipios_resumo` + arquivo de detalhe com objeto `municipio`.
 O caminho canônico continua `uf/42.json`, não `42_SC.json`.
-Ainda não existe frontend para migrar.
+O frontend atual já consome esse contrato particionado.
 
 Todos os níveis mantêm nomes explícitos: `renda_media_domiciliar` e
 `renda_media_responsavel`. A chave ambígua `renda_media` foi removida.
@@ -77,7 +78,7 @@ nacional de bairros/setores em memória. Veja [AGENTS.md](AGENTS.md) para detalh
 
 ## Diretórios e dependências futuras
 
-`frontend/` reserva React + Vite; `notebooks/` reserva exploração; `data/raw/`
+`frontend/` contém React + Vite + TypeScript; `notebooks/` reserva exploração; `data/raw/`
 contém bases locais ignoradas pelo Git.
 
 ```bash
@@ -148,3 +149,31 @@ Parquet monetário aceita somente texto/decimal128/256: float, inclusive NaN,
 A carga SQLite usa validação leve por setor; não constrói um agregado descartável
 para cada linha. A tolerância massa/média permanece R$ 0,05. PIB total permanece
 não negativo; componentes econômicos assinados exigiriam métricas separadas.
+
+## Executar a interface
+
+Requer Node >=22.12 (validado com Node 24):
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+As fixtures versionadas são servidas automaticamente, sem API ou novos downloads
+de bases. A interface tem tema escuro, layout dividido, rankings, dispersão,
+indicadores e qualidade da renda. URLs preservam os cinco níveis de navegação.
+
+```bash
+npm test
+npm run build
+npm run test:e2e
+```
+
+O último comando requer Chromium; veja [frontend/README.md](frontend/README.md)
+para instalar o navegador de testes ou selecionar seu executável. O build inclui
+os JSONs separados em dist/data/processed. As requisições continuam lazy.
+
+A visualização territorial é um cartograma esquemático, identificado na tela;
+municípios/bairros aparecem em cartões. Não há malha geográfica incluída. O join
+reverso setor → grupo já está preparado para uma futura malha municipal.
